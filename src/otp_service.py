@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 TWILIO_ACCOUNT_SID = get_configs("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = get_configs("TWILIO_AUTH_TOKEN")
 TWILIO_SERVICE_SID = get_configs("TWILIO_SERVICE_SID")
-TWILIO_MESSAGING_SERVICE_SID = get_configs("TWILIO_MESSAGING_SERVICE_SID")
+TWILIO_PHONE_NUMBER = get_configs("TWILIO_PHONE_NUMBER")
 MOCK_OTP = get_configs("MOCK_OTP")
 MOCK_OTP = MOCK_OTP.lower() == "true" if MOCK_OTP is not None else False
 DUMMY_PHONENUMBERS = get_configs(
@@ -155,7 +155,7 @@ def twilio_send_otp(phone_number, message_body=None):
         if message_body:
             message = client.messages.create(
                 body=message_body,
-                messaging_service_sid=TWILIO_MESSAGING_SERVICE_SID,
+                from_=TWILIO_PHONE_NUMBER,
                 to=phone_number,
             )
             status = message.status
