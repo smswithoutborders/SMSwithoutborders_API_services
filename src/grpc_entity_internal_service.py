@@ -40,6 +40,8 @@ logger = get_logger(__name__)
 
 HASHING_KEY = load_key(get_configs("HASHING_SALT"), 32)
 SUPPORTED_PLATFORMS = get_supported_platforms()
+MOCK_OTP = get_configs("MOCK_OTP")
+MOCK_OTP = MOCK_OTP.lower() == "true" if MOCK_OTP is not None else False
 
 
 class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
@@ -875,8 +877,12 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
 
                 create_entity(**fields)
 
-            _, otp_result = create_inapp_otp(phone_number=request.phone_number)
-            otp_code, otp_exp_time = otp_result
+            if MOCK_OTP:
+                otp_code = "123456"
+                otp_exp_time = 0
+            else:
+                _, otp_result = create_inapp_otp(phone_number=request.phone_number)
+                otp_code, otp_exp_time = otp_result
 
             auth_phrase = (
                 struct.pack("<i", len(entity_publish_pub_key))
@@ -900,7 +906,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                     grpc.StatusCode.INVALID_ARGUMENT,
                 )
 
-            return response(success=True, message=message)
+            return response(success=True, message=message_body if MOCK_OTP else message)
 
         try:
             invalid_fields_response = self.handle_request_field_validation(
