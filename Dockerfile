@@ -1,4 +1,4 @@
-FROM python:3.12.7-slim AS base
+FROM python:3.13.0-slim AS base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
