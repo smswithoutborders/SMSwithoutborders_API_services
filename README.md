@@ -1,32 +1,26 @@
-<img src="https://github.com/smswithoutborders/SMSWithoutBorders-Resources/raw/master/multimedia/img/swob_logo_icon.png" align="right" width="350px"/>
+# RelaySMS Vault
 
-# SMSWithoutBorders Back-end
+Technology developed by the SMSWithoutBorders team to securely store and manage user access tokens, enabling safe usage for publishing messages.
 
-This is a cloud API and User management service. It is directly configurable
-with MySQL databases for managing users. Also provides out of the box
-integrations of Google OAuth-2.0, Twitter OAuth, and Telegram end-points and
-Account authentication.
+## References
 
-## Documentation
-
-1. [Configurations](docs/configurations.md)
-2. [Features](docs/api_versions.md)
-3. [References](./docs/references.md)
-4. [Security](./docs/security.md)
-5. [gRPC](docs/grpc.md)
-6. [Specifications](docs/specifications.md)
+1. [Security](./docs/security.md)
+2. [gRPC](docs/grpc.md)
+3. [Specifications](docs/specifications.md)
    - [Long-Lived Tokens (LLTs)](docs/specifications.md#1-long-lived-tokens-llts)
    - [Device IDs](docs/specifications.md#2-device-id)
+   - [Auth Phrase](docs/specifications.md#3-auth-phrase)
 
-## Contribution
+## Contributing
 
-We are thrilled to have you contribute to this project
+To contribute:
 
-Please take a moment to read our [contributing guide](docs/contributing.md) to
-learn about our development process. Open an
-[issue](https://github.com/smswithoutborders/SMSwithoutborders-BE/issues) first
-to discuss potential changes/additions.
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature-branch`.
+3. Commit your changes: `git commit -m 'Add a new feature'`.
+4. Push to the branch: `git push origin feature-branch`.
+5. Open a Pull Request.
 
-## Licensing
+## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+This project is licensed under the GNU General Public License (GPL). See the [LICENSE](LICENSE) file for details.
