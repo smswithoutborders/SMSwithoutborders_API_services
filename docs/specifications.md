@@ -180,8 +180,9 @@ def compute_device_id(secret_key: bytes, phone_number: str, public_key: bytes) -
 ```python
  auth_phrase = (
         struct.pack("<i", len(server_publish_pub_key))  # Length of public key
+        + struct.pack("<i", len(otp_code))  # Length of OTP code
+        + struct.pack("<i", len(otp_exp_time))  # Length of OTP expiration time
         + server_publish_pub_key  # Public key
-        + struct.pack("<i", len(otp_code))  # Length of OTP
         + otp_code.encode("utf-8")  # OTP code
         + str(otp_exp_time).encode("utf-8")  # OTP expiration time
     )

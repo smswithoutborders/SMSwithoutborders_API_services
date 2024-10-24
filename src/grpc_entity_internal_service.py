@@ -878,22 +878,26 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 create_entity(**fields)
 
             if MOCK_OTP:
-                otp_code = "123456"
-                otp_exp_time = 0
+                otp_code, otp_exp_time = "123456", 0
             else:
                 _, otp_result = create_inapp_otp(phone_number=request.phone_number)
                 otp_code, otp_exp_time = otp_result
 
+            otp_code_encoded = otp_code.encode("utf-8")
+            otp_exp_time_encoded = str(otp_exp_time).encode("utf-8")
+
             auth_phrase = (
                 struct.pack("<i", len(entity_publish_pub_key))
+                + struct.pack("<i", len(otp_code_encoded))
+                + struct.pack("<i", len(otp_exp_time_encoded))
                 + entity_publish_pub_key
-                + struct.pack("<i", len(otp_code))
-                + otp_code.encode("utf-8")
-                + str(otp_exp_time).encode("utf-8")
+                + otp_code_encoded
+                + otp_exp_time_encoded
             )
+
             message_body = (
                 "Your RelaySMS Auth Phrase is: "
-                f'{base64.b64encode(auth_phrase).decode("utf-8")}'
+                f"{base64.b64encode(auth_phrase).decode('utf-8')}"
             )
 
             success, message, _ = send_otp(request.phone_number, message_body)
