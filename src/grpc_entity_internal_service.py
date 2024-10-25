@@ -863,6 +863,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
             if entity_obj:
                 entity_obj.client_publish_pub_key = request.client_publish_pub_key
                 entity_obj.publish_keypair = entity_publish_keypair.serialize()
+                entity_obj.server_state = None
                 entity_obj.save()
             else:
                 fields = {
@@ -924,14 +925,6 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
 
             phone_number_hash = generate_hmac(HASHING_KEY, request.phone_number)
             entity_obj = find_entity(phone_number_hash=phone_number_hash)
-
-            if entity_obj and entity_obj.is_bridge_enabled:
-                return self.handle_create_grpc_error_response(
-                    context,
-                    response,
-                    "Bridge Entity with this phone number already exists.",
-                    grpc.StatusCode.ALREADY_EXISTS,
-                )
 
             eid = generate_eid(phone_number_hash)
 
