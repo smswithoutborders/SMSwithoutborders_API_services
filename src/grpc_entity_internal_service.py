@@ -884,21 +884,26 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 _, otp_result = create_inapp_otp(phone_number=request.phone_number)
                 otp_code, otp_exp_time = otp_result
 
-            otp_code_encoded = otp_code.encode("utf-8")
             otp_exp_time_encoded = str(otp_exp_time).encode("utf-8")
 
             auth_phrase = (
                 struct.pack("<i", len(entity_publish_pub_key))
-                + struct.pack("<i", len(otp_code_encoded))
                 + struct.pack("<i", len(otp_exp_time_encoded))
                 + entity_publish_pub_key
-                + otp_code_encoded
                 + otp_exp_time_encoded
             )
 
             message_body = (
-                "Your RelaySMS Auth Phrase is: "
-                f"{base64.b64encode(auth_phrase).decode('utf-8')}"
+                f"Your RelaySMS code is: {otp_code}."
+                f"Paste this in the app: {base64.b64encode(auth_phrase).decode('utf-8')}."
+            )
+
+            message_length = len(message_body)
+            sms_count = (message_length // 140) + (1 if message_length % 140 > 0 else 0)
+            logger.debug(
+                "Message Length: %s characters (SMS count: %s)",
+                message_length,
+                sms_count,
             )
 
             success, message, _ = send_otp(request.phone_number, message_body)
