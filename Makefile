@@ -5,7 +5,7 @@ define log_message
 	@echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - $1"
 endef
 
-start:
+start-rest-api:
 	@(\
 		echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - INFO - Starting REST API with TLS ..." && \
 		gunicorn -w 4 -b 0.0.0.0:'${SSL_PORT}' \
@@ -18,32 +18,11 @@ start:
 			server:app; \
 	)
 
-set-keys:
-	$(call log_message,WARNING - Login to database engine.)
-	@echo ""
-	@echo "Press [Enter] to use default value."
-	@echo ""
-	@$(python) configurationHelper.py --setkeys
-	$(call log_message,INFO - Keys set successfully.)
-
-get-keys:
-	$(call log_message,WARNING - Login to database engine.)
-	@echo ""
-	@echo "Press [Enter] to use default value."
-	@echo ""
-	@$(python) configurationHelper.py --getkeys
-
 migrate:
 	$(call log_message,INFO - Starting migration ...)
 	@$(python) migrationHelper.py
 	@echo ""
 	$(call log_message,INFO - Migration completed successfully.)
-
-dummy-user-inject:
-	$(call log_message,INFO - Injecting dummy user ...)
-	@$(python) injectDummyData.py --user
-	@echo ""
-	$(call log_message,INFO - Dummy user injected successfully.)
 
 grpc-compile:
 	$(call log_message,INFO - Compiling gRPC protos ...)
@@ -75,9 +54,6 @@ create-dummy-user:
 	@$(python) -m scripts.cli create -n +237123456789
 	@echo ""
 	$(call log_message,INFO - Dummy user created successfully.)
-
-rest-server-setup: dummy-user-inject start
-	$(call log_message,INFO - REST server setup completed.)
 
 grpc-server-setup: create-dummy-user download-platforms grpc-compile grpc-server-start
 	$(call log_message,INFO - gRPC server setup completed.)
