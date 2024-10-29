@@ -1,4 +1,4 @@
-FROM python:3.13.0-slim 
+FROM python:3.13.0-slim as base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -21,6 +21,8 @@ COPY . .
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN pip install --disable-pip-version-check --quiet --no-cache-dir --force-reinstall -r requirements.txt 
+
+FROM base AS production
 
 ENV MODE=production
 
