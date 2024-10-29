@@ -51,7 +51,7 @@ def set_security_headers(response):
 @v3_blueprint.before_request
 def _db_connect():
     """Connect to the database before processing the request."""
-    database.connect()
+    database.connect(reuse_if_open=True)
 
 
 @v3_blueprint.teardown_request
