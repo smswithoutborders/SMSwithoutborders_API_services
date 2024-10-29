@@ -1,4 +1,4 @@
-FROM python:3.13.0-slim AS base
+FROM python:3.13.0-slim 
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -15,25 +15,13 @@ RUN apt-get update && \
     pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /vault
+WORKDIR /
 
 COPY . .
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN pip install -U --quiet --no-cache-dir pip setuptools && \
-    pip install --quiet --no-cache-dir --force-reinstall -r requirements.txt && \
-    usermod -u 1000 www-data && \
-    usermod -G root www-data
+RUN pip install --disable-pip-version-check --quiet --no-cache-dir --force-reinstall -r requirements.txt 
 
-FROM base AS development
-CMD echo "[*] Starting Development server ..." && \
-    make dummy-user-inject && \
-    mod_wsgi-express start-server wsgi_script.py \
-    --user www-data \
-    --group www-data \
-    --port '${PORT}' \
-    --log-to-terminal
-
-FROM base AS production
 ENV MODE=production
-CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

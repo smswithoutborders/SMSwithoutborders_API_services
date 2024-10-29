@@ -7,23 +7,15 @@ endef
 
 start:
 	@(\
-		if [ "$(shell echo ${MODE} | tr '[:upper:]' '[:lower:]')" = "production" ] && [ "${SSL_CERTIFICATE}" != "" ] && [ "${SSL_KEY}" != "" ] && [ "${SSL_PEM}" != "" ]; then \
-			echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - INFO - Starting Production server ..." && \
-			mod_wsgi-express start-server wsgi_script.py \
-			--user www-data \
-			--group www-data \
-			--port '${PORT}' \
-			--ssl-certificate-file '${SSL_CERTIFICATE}' \
-			--ssl-certificate-key-file '${SSL_KEY}' \
-			--ssl-certificate-chain-file '${SSL_PEM}' \
-			--https-only \
-			--server-name '${SSL_SERVER_NAME}' \
-			--https-port '${SSL_PORT}' \
-			--log-to-terminal; \
-		else \
-			echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - INFO - Starting Development server ..." && \
-			mod_wsgi-express start-server wsgi_script.py --user www-data --group www-data --port ${PORT} --log-to-terminal; \
-		fi \
+		echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - INFO - Starting REST API with TLS ..." && \
+		gunicorn -w 4 -b 0.0.0.0:'${SSL_PORT}' \
+			--log-level=info \
+			--access-logfile=- \
+			--certfile='${SSL_CERTIFICATE}' \
+			--keyfile='${SSL_KEY}' \
+			--preload \
+			--timeout 30 \
+			server:app; \
 	)
 
 set-keys:
