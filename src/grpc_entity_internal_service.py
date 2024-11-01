@@ -886,15 +886,25 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
 
             otp_exp_time_encoded = str(otp_exp_time).encode("utf-8")
 
+            logger.debug(
+                "Length of entity_publish_pub_key: %s bytes",
+                len(entity_publish_pub_key),
+            )
+            logger.debug(
+                "Length of otp_exp_time_encoded: %s bytes", len(otp_exp_time_encoded)
+            )
+
             auth_phrase = (
-                struct.pack("<i", len(entity_publish_pub_key))
-                + struct.pack("<i", len(otp_exp_time_encoded))
+                bytes([len(entity_publish_pub_key)])
+                + bytes([len(otp_exp_time_encoded)])
                 + entity_publish_pub_key
                 + otp_exp_time_encoded
             )
 
+            logger.debug("Total length of auth_phrase: %s bytes", len(auth_phrase))
+
             message_body = (
-                f"Your RelaySMS code is: {otp_code}."
+                f"Your RelaySMS code is: {otp_code}. "
                 f"Paste this in the app: {base64.b64encode(auth_phrase).decode('utf-8')}."
             )
 
