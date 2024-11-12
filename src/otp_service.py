@@ -165,7 +165,7 @@ def twilio_send_otp(phone_number, message_body=None):
             ).verifications.create(to=phone_number, channel="sms")
             status = verification.status
 
-        if status in ("accepted", "pending"):
+        if status in ("accepted", "pending", "queued"):
             logger.info("OTP sent successfully.")
             return True, "OTP sent successfully. Please check your phone for the code."
 
@@ -379,13 +379,6 @@ def create_inapp_otp(phone_number, exp_time=1051200):
             "attempt_count": 0,
         },
     )
-
-    if not created and not otp_entry.is_expired():
-        expiration_time = int(otp_entry.date_expires.timestamp())
-        return (
-            "An active OTP already exists. Returning current OTP.",
-            (otp_entry.otp_code, expiration_time),
-        )
 
     if not created:
         otp_entry.otp_code = generate_otp()
