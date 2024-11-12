@@ -17,6 +17,6 @@ pytest==8.3.3
 requests==2.32.3
 smswithoutborders_libsig @ git+https://github.com/smswithoutborders/lib_signal_double_ratchet_python.git@staging#egg=smswithoutborders_libsig
 SwobThirdPartyPlatforms @ git+https://github.com/smswithoutborders/SMSWithoutBorders-Customized-Third-Party-Platforms.git@main#egg=SwobThirdPartyPlatforms
-tqdm==4.66.6
+tqdm==4.67.0
 twilio==9.3.6
 Werkzeug==3.0.6
