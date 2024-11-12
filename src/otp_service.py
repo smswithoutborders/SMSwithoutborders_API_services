@@ -354,13 +354,13 @@ def generate_otp(length=6):
     return str(random.randint(10 ** (length - 1), 10**length - 1))
 
 
-def create_inapp_otp(phone_number, exp_time=30):
+def create_inapp_otp(phone_number, exp_time=1051200):
     """
     Create or update an OTP for the given phone number.
 
     Args:
         phone_number (str): The phone number for which the OTP will be generated.
-        exp_time (int): The expiration time in minutes for the OTP. Defaults to 30 minutes.
+        exp_time (int): The expiration time in minutes for the OTP. Defaults to 1051200 minutes.
 
     Returns:
         tuple:

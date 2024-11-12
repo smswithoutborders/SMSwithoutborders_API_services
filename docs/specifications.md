@@ -180,20 +180,17 @@ def compute_device_id(secret_key: bytes, phone_number: str, public_key: bytes) -
 ```python
 auth_phrase = (
         bytes([len(server_publish_pub_key)])  # Length of public key
-        + bytes([len(otp_exp_time)])  # Length of OTP expiration time
         + server_publish_pub_key  # Public key
-        + str(otp_exp_time).encode("utf-8")  # OTP expiration time
     )
 print(base64.b64encode(auth_phrase).decode("utf-8"))
 ```
 
 - **Public Key Length**: The first byte indicates the length of the public key.
-- **OTP Expiration Length**: The second byte denotes the length of the OTP expiration time.
 - **Public Key**: The actual server's public key.
-- **OTP Expiration Time**: The expiration time of the OTP.
 
 The SMS message is formatted as follows:
 
 ```
-"Your RelaySMS code is: `otp_code`. Paste this in the app: `auth_phrase`."
+RelaySMS Please paste this entire message in your RelaySMS app
+<otp_code><auth_phrase>
 ```

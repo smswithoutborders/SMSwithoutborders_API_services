@@ -3,7 +3,6 @@
 import base64
 import re
 import traceback
-import struct
 
 import grpc
 import phonenumbers
@@ -177,17 +176,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
         return None
 
     def handle_long_lived_token_validation(self, request, context, response):
-        """
-        Handles the validation of a long-lived token from the request.
-
-        Args:
-            context: gRPC context.
-            request: gRPC request object.
-            response: gRPC response object.
-
-        Returns:
-            tuple: Tuple containing entity object, and error response.
-        """
+        """Handles the validation of a long-lived token from the request."""
 
         def create_error_response(error_msg):
             return self.handle_create_grpc_error_response(
@@ -879,33 +868,23 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 create_entity(**fields)
 
             if MOCK_OTP:
-                otp_code, otp_exp_time = "123456", 0
+                otp_code = "123456"
             else:
                 _, otp_result = create_inapp_otp(phone_number=request.phone_number)
-                otp_code, otp_exp_time = otp_result
-
-            otp_exp_time_encoded = str(otp_exp_time).encode("utf-8")
+                otp_code, _ = otp_result
 
             logger.debug(
                 "Length of entity_publish_pub_key: %s bytes",
                 len(entity_publish_pub_key),
             )
-            logger.debug(
-                "Length of otp_exp_time_encoded: %s bytes", len(otp_exp_time_encoded)
-            )
 
-            auth_phrase = (
-                bytes([len(entity_publish_pub_key)])
-                + bytes([len(otp_exp_time_encoded)])
-                + entity_publish_pub_key
-                + otp_exp_time_encoded
-            )
+            auth_phrase = bytes([len(entity_publish_pub_key)]) + entity_publish_pub_key
 
             logger.debug("Total length of auth_phrase: %s bytes", len(auth_phrase))
 
             message_body = (
-                f"Your RelaySMS code is: {otp_code}. "
-                f"Paste this in the app: {base64.b64encode(auth_phrase).decode('utf-8')}."
+                f"RelaySMS Please paste this entire message in your RelaySMS app \n"
+                f"{otp_code}{base64.b64encode(auth_phrase).decode('utf-8')}"
             )
 
             message_length = len(message_body)
