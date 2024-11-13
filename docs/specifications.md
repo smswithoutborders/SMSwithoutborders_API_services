@@ -13,6 +13,7 @@
    - [Usage](#usage-1)
      - [Generating Device ID](#1-generating-device-id)
    - [Code Example (Python)](#code-example-python-1)
+3. [Auth Phrase](#3-auth-phrase)
 
 ## 1. Long-Lived Tokens (LLTs)
 
@@ -172,4 +173,24 @@ def compute_device_id(secret_key: bytes, phone_number: str, public_key: bytes) -
     hmac_object = hmac.new(secret_key, combined_input, hashlib.sha256)
     # Return bytes representation of HMAC digest
     return hmac_object.digest()
+```
+
+## 3. Auth-Phrase
+
+```python
+auth_phrase = (
+        bytes([len(server_publish_pub_key)])  # Length of public key
+        + server_publish_pub_key  # Public key
+    )
+print(base64.b64encode(auth_phrase).decode("utf-8"))
+```
+
+- **Public Key Length**: The first byte indicates the length of the public key.
+- **Public Key**: The actual server's public key.
+
+The SMS message is formatted as follows:
+
+```
+RelaySMS Please paste this entire message in your RelaySMS app
+<otp_code> <auth_phrase>
 ```

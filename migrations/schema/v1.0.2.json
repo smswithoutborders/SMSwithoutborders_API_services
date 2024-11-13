@@ -1,0 +1,13 @@
+[
+  {
+    "action": "drop_not_null",
+    "table": "entities",
+    "column": "password_hash"
+  },
+  {
+    "action": "add_column",
+    "table": "entities",
+    "column_name": "is_bridge_enabled",
+    "field": "BooleanField(default=True)"
+  }
+]

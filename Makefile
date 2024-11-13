@@ -5,53 +5,24 @@ define log_message
 	@echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - $1"
 endef
 
-start:
+start-rest-api:
 	@(\
-		if [ "$(shell echo ${MODE} | tr '[:upper:]' '[:lower:]')" = "production" ] && [ "${SSL_CERTIFICATE}" != "" ] && [ "${SSL_KEY}" != "" ] && [ "${SSL_PEM}" != "" ]; then \
-			echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - INFO - Starting Production server ..." && \
-			mod_wsgi-express start-server wsgi_script.py \
-			--user www-data \
-			--group www-data \
-			--port '${PORT}' \
-			--ssl-certificate-file '${SSL_CERTIFICATE}' \
-			--ssl-certificate-key-file '${SSL_KEY}' \
-			--ssl-certificate-chain-file '${SSL_PEM}' \
-			--https-only \
-			--server-name '${SSL_SERVER_NAME}' \
-			--https-port '${SSL_PORT}' \
-			--log-to-terminal; \
-		else \
-			echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - INFO - Starting Development server ..." && \
-			mod_wsgi-express start-server wsgi_script.py --user www-data --group www-data --port ${PORT} --log-to-terminal; \
-		fi \
+		echo "[$(shell date +'%Y-%m-%d %H:%M:%S')] - INFO - Starting REST API with TLS ..." && \
+		gunicorn -w 4 -b 0.0.0.0:'${SSL_PORT}' \
+			--log-level=info \
+			--access-logfile=- \
+			--certfile='${SSL_CERTIFICATE}' \
+			--keyfile='${SSL_KEY}' \
+			--preload \
+			--timeout 30 \
+			server:app; \
 	)
-
-set-keys:
-	$(call log_message,WARNING - Login to database engine.)
-	@echo ""
-	@echo "Press [Enter] to use default value."
-	@echo ""
-	@$(python) configurationHelper.py --setkeys
-	$(call log_message,INFO - Keys set successfully.)
-
-get-keys:
-	$(call log_message,WARNING - Login to database engine.)
-	@echo ""
-	@echo "Press [Enter] to use default value."
-	@echo ""
-	@$(python) configurationHelper.py --getkeys
 
 migrate:
 	$(call log_message,INFO - Starting migration ...)
 	@$(python) migrationHelper.py
 	@echo ""
 	$(call log_message,INFO - Migration completed successfully.)
-
-dummy-user-inject:
-	$(call log_message,INFO - Injecting dummy user ...)
-	@$(python) injectDummyData.py --user
-	@echo ""
-	$(call log_message,INFO - Dummy user injected successfully.)
 
 grpc-compile:
 	$(call log_message,INFO - Compiling gRPC protos ...)
@@ -83,9 +54,6 @@ create-dummy-user:
 	@$(python) -m scripts.cli create -n +237123456789
 	@echo ""
 	$(call log_message,INFO - Dummy user created successfully.)
-
-rest-server-setup: dummy-user-inject start
-	$(call log_message,INFO - REST server setup completed.)
 
 grpc-server-setup: create-dummy-user download-platforms grpc-compile grpc-server-start
 	$(call log_message,INFO - gRPC server setup completed.)

@@ -17,7 +17,7 @@ from playhouse.migrate import MySQLMigrator, migrate
 from src.db import connect
 
 MIGRATION_DIR = os.path.join("migrations", "schema")
-ALLOWED_FIELDS = ("CharField",)
+ALLOWED_FIELDS = ("CharField", "BooleanField")
 SUCCESS = "✅"
 FAILED = "❌"
 
