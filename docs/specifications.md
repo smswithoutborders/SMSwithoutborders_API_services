@@ -192,5 +192,5 @@ The SMS message is formatted as follows:
 
 ```
 RelaySMS Please paste this entire message in your RelaySMS app
-<otp_code><auth_phrase>
+<otp_code> <auth_phrase>
 ```

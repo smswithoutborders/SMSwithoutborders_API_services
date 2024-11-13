@@ -884,7 +884,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
 
             message_body = (
                 f"RelaySMS Please paste this entire message in your RelaySMS app \n"
-                f"{otp_code}{base64.b64encode(auth_phrase).decode('utf-8')}"
+                f"{otp_code} {base64.b64encode(auth_phrase).decode('utf-8')}"
             )
 
             message_length = len(message_body)
