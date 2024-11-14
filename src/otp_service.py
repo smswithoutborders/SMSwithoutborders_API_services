@@ -412,6 +412,13 @@ def verify_inapp_otp(phone_number, otp_code):
     )
 
     if not otp_entry:
+        verified_otp_entry = OTP.get_or_none(
+            OTP.phone_number == phone_number,
+            OTP.is_verified,
+            OTP.otp_code == otp_code,
+        )
+        if verified_otp_entry:
+            return True, "OTP is already verified for this phone number."
         return False, "No OTP record found for this phone number."
 
     if otp_entry.is_expired():
