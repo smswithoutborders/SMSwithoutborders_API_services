@@ -1,5 +1,5 @@
 asgiref==3.8.1
-Flask==3.0.3
+Flask==3.1.0
 Flask-Cors==5.0.0
 grpc-interceptor==0.15.4
 gunicorn==23.0.0
