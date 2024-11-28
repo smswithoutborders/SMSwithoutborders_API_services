@@ -30,7 +30,8 @@ def process_token(token, pbar):
         account_identifier = decrypt_and_decode(token.account_identifier)
         account_identifier_hash = token.account_identifier
 
-        clean_account_identifier = account_identifier.strip()
+        clean_account_identifier = account_identifier.strip('"').strip()
+
         if account_identifier != clean_account_identifier:
             clean_account_identifier_hash = generate_hmac(
                 HASHING_KEY, clean_account_identifier
