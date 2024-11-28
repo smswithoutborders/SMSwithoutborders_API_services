@@ -290,7 +290,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                     "this platform will be implemented."
                 )
 
-            account_identifier = request.account_identifier.replace("\n", "")
+            account_identifier = request.account_identifier.strip()
             account_identifier_hash = generate_hmac(HASHING_KEY, account_identifier)
 
             existing_token = check_existing_token(
@@ -633,7 +633,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                     "this platform will be implemented."
                 )
 
-            account_identifier = request.account_identifier.replace("\n", "")
+            account_identifier = request.account_identifier.strip()
             account_identifier_hash = generate_hmac(HASHING_KEY, account_identifier)
 
             return fetch_tokens(entity_obj, account_identifier_hash)
@@ -698,7 +698,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                         grpc.StatusCode.UNAUTHENTICATED,
                     )
 
-            account_identifier = request.account_identifier.replace("\n", "")
+            account_identifier = request.account_identifier.strip()
             account_identifier_hash = generate_hmac(HASHING_KEY, account_identifier)
 
             existing_tokens = fetch_entity_tokens(
@@ -763,7 +763,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                     "this platform will be implemented."
                 )
 
-            account_identifier = request.account_identifier.replace("\n", "")
+            account_identifier = request.account_identifier.strip()
             account_identifier_hash = generate_hmac(HASHING_KEY, account_identifier)
 
             existing_tokens = fetch_entity_tokens(
