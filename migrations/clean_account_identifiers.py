@@ -3,9 +3,9 @@ Script to clean and rehash account identifiers in tokens.
 """
 
 import tqdm
-from db_models import Token
+from src.db_models import Token
 from src.crypto import generate_hmac
-from utils import decrypt_and_decode, encrypt_and_encode, load_key, get_configs
+from src.utils import decrypt_and_decode, encrypt_and_encode, load_key, get_configs
 from base_logger import get_logger
 
 HASHING_KEY = load_key(get_configs("HASHING_SALT"), 32)
