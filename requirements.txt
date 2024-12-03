@@ -13,7 +13,7 @@ nest-asyncio==1.6.0
 peewee==3.17.8
 phonenumbers==8.13.50
 pycryptodome==3.21.0
-pytest==8.3.3
+pytest==8.3.4
 requests==2.32.3
 smswithoutborders_libsig @ git+https://github.com/smswithoutborders/lib_signal_double_ratchet_python.git@v0.1.0
 SwobThirdPartyPlatforms @ git+https://github.com/smswithoutborders/SMSWithoutBorders-Customized-Third-Party-Platforms.git@main#egg=SwobThirdPartyPlatforms
