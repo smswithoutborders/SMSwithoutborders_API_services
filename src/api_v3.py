@@ -12,6 +12,7 @@ from phonenumbers import geocoder
 from src.db import connect
 from src.entity import fetch_all_entities
 from src.utils import decrypt_and_decode
+from src.entity_metrics import fetch_signup_records, fetch_retained_user_records
 from base_logger import get_logger
 
 v3_blueprint = Blueprint("v3", __name__, url_prefix="/v3")
@@ -168,6 +169,64 @@ def get_entities_analysis():
         raise BadRequest("Invalid format. Expected 'month' or 'day'.")
 
     logger.info("Successfully fetched entities data.")
+    return jsonify(result), 200
+
+
+@v3_blueprint.route("/signup-metrics", methods=["GET"])
+def get_signup_metrics():
+    """Retrieve metrics for user signups."""
+
+    start = request.args.get("start")
+    end = request.args.get("end")
+    page = request.args.get("page")
+    page_size = request.args.get("page_size")
+
+    if not start or not end:
+        raise BadRequest("Invalid input parameters. Provide 'start' and 'end' dates.")
+
+    try:
+        page = int(page)
+        page_size = int(page_size)
+    except ValueError as e:
+        raise BadRequest("'page' and 'page_size' must be integers.") from e
+
+    try:
+        result = fetch_signup_records(
+            page=page, page_size=page_size, start_date=start, end_date=end
+        )
+    except ValueError as e:
+        raise BadRequest(str(e)) from e
+
+    logger.info("Successfully fetched signup metrics.")
+    return jsonify(result), 200
+
+
+@v3_blueprint.route("/retained-user-metrics", methods=["GET"])
+def get_retained_user_metrics():
+    """Retrieve metrics for retained (active) users."""
+
+    start = request.args.get("start")
+    end = request.args.get("end")
+    page = request.args.get("page")
+    page_size = request.args.get("page_size")
+
+    if not start or not end:
+        raise BadRequest("Invalid input parameters. Provide 'start' and 'end' dates.")
+
+    try:
+        page = int(page)
+        page_size = int(page_size)
+    except ValueError as e:
+        raise BadRequest("'page' and 'page_size' must be integers.") from e
+
+    try:
+        result = fetch_retained_user_records(
+            page=page, page_size=page_size, start_date=start, end_date=end
+        )
+    except ValueError as e:
+        raise BadRequest(str(e)) from e
+
+    logger.info("Successfully fetched retained user metrics.")
     return jsonify(result), 200
 
 
