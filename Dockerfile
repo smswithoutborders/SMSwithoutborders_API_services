@@ -22,8 +22,6 @@ COPY requirements.txt .
 
 RUN pip install --disable-pip-version-check --quiet --no-cache-dir --force-reinstall -r requirements.txt
 
-FROM base AS build
-
 COPY . .
 
 FROM base AS production
