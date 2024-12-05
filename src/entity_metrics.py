@@ -1,3 +1,9 @@
+"""
+This program is free software: you can redistribute it under the terms
+of the GNU General Public License, v. 3.0. If a copy of the GNU General
+Public License was not distributed with this file, see <https://www.gnu.org/licenses/>.
+"""
+
 from datetime import datetime
 from peewee import fn
 from src.db_models import Entity, Signups
@@ -7,14 +13,14 @@ MAX_PAGE_SIZE = 100
 MIN_PAGE_SIZE = 10
 
 
-def validate_date_format(date_str: str, date_format: str = "%Y-%m-%d") -> str:
-    """
-    Validate and format the input date string.
-    """
+def validate_date_format(date_str: str) -> datetime:
+    """Validate the date format and return a datetime object."""
     try:
-        return datetime.strptime(date_str, date_format).strftime(date_format)
-    except ValueError:
-        raise ValueError(f"Invalid date format. Expected {date_format}.")
+        return datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError as exc:
+        raise ValueError(
+            f"Date '{date_str}' is not in the correct format. Expected 'YYYY-MM-DD'."
+        ) from exc
 
 
 def fetch_signup_records(
@@ -31,8 +37,12 @@ def fetch_signup_records(
 
     if not start_date or not end_date:
         raise ValueError("start_date and end_date must be provided.")
+
     start_date = validate_date_format(start_date)
     end_date = validate_date_format(end_date)
+
+    if start_date > end_date:
+        raise ValueError("start_date must be earlier than or equal to end_date.")
 
     signups_query = (
         Signups.select(
@@ -88,8 +98,12 @@ def fetch_retained_user_records(
 
     if not start_date or not end_date:
         raise ValueError("start_date and end_date must be provided.")
+
     start_date = validate_date_format(start_date)
     end_date = validate_date_format(end_date)
+
+    if start_date > end_date:
+        raise ValueError("start_date must be earlier than or equal to end_date.")
 
     entities_query = (
         Entity.select(
