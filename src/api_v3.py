@@ -11,8 +11,8 @@ from phonenumbers import geocoder
 
 from src.db import connect
 from src.entity import fetch_all_entities
-from src.utils import decrypt_and_decode
-from src.entity_metrics import fetch_signup_records, fetch_retained_user_records
+from src.utils import decrypt_and_decode, validate_metrics_args, filter_dict
+from src.user_metrics import get_signup_users, get_retained_users
 from base_logger import get_logger
 
 v3_blueprint = Blueprint("v3", __name__, url_prefix="/v3")
@@ -172,62 +172,75 @@ def get_entities_analysis():
     return jsonify(result), 200
 
 
-@v3_blueprint.route("/signup-metrics", methods=["GET"])
-def get_signup_metrics():
-    """Retrieve metrics for user signups."""
+@v3_blueprint.route("/metrics/signup", methods=["GET"])
+def signup_users():
+    """Endpoint to retrieve signup user data based on specified filters and grouping."""
 
-    start = request.args.get("start")
-    end = request.args.get("end")
-    page = request.args.get("page")
-    page_size = request.args.get("page_size")
-
-    if not start or not end:
-        raise BadRequest("Invalid input parameters. Provide 'start' and 'end' dates.")
+    filters = request.args.to_dict()
+    options = {
+        "granularity": request.args.get("granularity", type=str),
+        "top": request.args.get("top", type=int),
+        "page": request.args.get("page", type=int),
+        "page_size": request.args.get("page_size", type=int),
+        "group_by": request.args.get("group_by", type=str),
+    }
 
     try:
-        page = int(page)
-        page_size = int(page_size)
+        filtered_options = filter_dict(options, ("granularity", "group_by"))
+        print(filtered_options)
+        validate_metrics_args(**filtered_options)
     except ValueError as e:
-        raise BadRequest("'page' and 'page_size' must be integers.") from e
+        raise BadRequest(str(e)) from e
 
     try:
-        result = fetch_signup_records(
-            page=page, page_size=page_size, start_date=start, end_date=end
+        result = get_signup_users(
+            filters=filters, group_by=options["group_by"], options=options
         )
     except ValueError as e:
         raise BadRequest(str(e)) from e
 
     logger.info("Successfully fetched signup metrics.")
-    return jsonify(result), 200
+    return jsonify(result)
 
 
-@v3_blueprint.route("/retained-user-metrics", methods=["GET"])
-def get_retained_user_metrics():
-    """Retrieve metrics for retained (active) users."""
+@v3_blueprint.route("/metrics/retained", methods=["GET"])
+def retained_users():
+    """Endpoint to retrieve retained user data based on specified filters and grouping."""
 
-    start = request.args.get("start")
-    end = request.args.get("end")
-    page = request.args.get("page")
-    page_size = request.args.get("page_size")
-
-    if not start or not end:
-        raise BadRequest("Invalid input parameters. Provide 'start' and 'end' dates.")
+    filters = request.args.to_dict()
+    options = {
+        "granularity": request.args.get("granularity", type=str, default="day"),
+        "top": request.args.get("top", type=int),
+        "page": (
+            request.args.get("page", type=int, default=1)
+            if request.args.get("top") is None
+            else None
+        ),
+        "page_size": (
+            request.args.get("page_size", type=int, default=50)
+            if request.args.get("top") is None
+            else None
+        ),
+        "group_by": request.args.get("group_by", type=str),
+    }
 
     try:
-        page = int(page)
-        page_size = int(page_size)
+        filtered_options = filter_dict(
+            filters | options,
+            include_only=("start_date", "end_date", "top", "page", "page_size"),
+        )
+        validate_metrics_args(**filtered_options)
     except ValueError as e:
-        raise BadRequest("'page' and 'page_size' must be integers.") from e
+        raise BadRequest(str(e)) from e
 
     try:
-        result = fetch_retained_user_records(
-            page=page, page_size=page_size, start_date=start, end_date=end
+        result = get_retained_users(
+            filters=filters, group_by=options["group_by"], options=options
         )
     except ValueError as e:
         raise BadRequest(str(e)) from e
 
-    logger.info("Successfully fetched retained user metrics.")
-    return jsonify(result), 200
+    return jsonify(result)
 
 
 @v3_blueprint.errorhandler(BadRequest)

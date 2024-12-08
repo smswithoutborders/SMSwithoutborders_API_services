@@ -1,4 +1,4 @@
-# API V3 Resource Documentation
+# **API V3 Resource Documentation**
 
 ## **Base URL**
 
@@ -10,22 +10,26 @@ https://vault.smswithoutborders.com
 
 ### **1. Get Signup Metrics**
 
-Retrieve metrics for user signups within a specified date range.
+Retrieve metrics for user signups within a specified date range, with options for filtering and pagination.
 
 #### **Endpoint**
 
 ```
-GET /v3/signup-metrics
+GET /v3/metrics/signup
 ```
 
 #### **Query Parameters**
 
-| Parameter   | Type   | Required | Description                                                                       |
-| ----------- | ------ | -------- | --------------------------------------------------------------------------------- |
-| `start`     | string | Yes      | Start date in "YYYY-MM-DD" format.                                                |
-| `end`       | string | Yes      | End date in "YYYY-MM-DD" format.                                                  |
-| `page`      | int    | No       | Page number for pagination. Defaults to `1`.                                      |
-| `page_size` | int    | No       | Number of records per page. Defaults to `10`. Maximum recommended value is `100`. |
+| Parameter      | Type   | Required | Description                                                                          |
+| -------------- | ------ | -------- | ------------------------------------------------------------------------------------ |
+| `start_date`   | string | Yes      | Start date in "YYYY-MM-DD" format.                                                   |
+| `end_date`     | string | Yes      | End date in "YYYY-MM-DD" format.                                                     |
+| `country_code` | string | No       | Country code for filtering signup users.                                             |
+| `granularity`  | string | No       | Granularity for date grouping: "day" or "month". Defaults to "day".                  |
+| `group_by`     | string | No       | Grouping option: "country", "date", or None. Defaults to None (returns total count). |
+| `top`          | int    | No       | Limits the number of results returned (overrides `page` and `page_size`).            |
+| `page`         | int    | No       | Page number for pagination. Defaults to `1`.                                         |
+| `page_size`    | int    | No       | Number of records per page. Defaults to `50`. Maximum recommended value is `100`.    |
 
 #### **Response**
 
@@ -35,18 +39,24 @@ GET /v3/signup-metrics
 
 ```json
 {
-  "total_signup_count": 120,
-  "total_country_count": 4,
-  "data": {
-    "2024-01-01": {
-      "CM": { "signup_count": 30 },
-      "NG": { "signup_count": 20 }
+  "total_signup_users": 120,
+  "pagination": {
+    "page": 1,
+    "page_size": 50,
+    "total_pages": 3,
+    "total_records": 120
+  },
+  "data": [
+    {
+      "country_code": "CM",
+      "signup_users": 30
     },
-    "2024-01-02": {
-      "CA": { "signup_count": 50 },
-      "AU": { "signup_count": 20 }
-    }
-  }
+    {
+      "country_code": "NG",
+      "signup_users": 20
+    },
+    ...
+  ]
 }
 ```
 
@@ -57,13 +67,25 @@ GET /v3/signup-metrics
 - Missing required parameters:
   ```json
   {
-    "error": "Invalid input parameters. Provide 'start' and 'end' dates."
+    "error": "Invalid input parameters. Provide 'start_date' and 'end_date'."
   }
   ```
-- Invalid `page` or `page_size`:
+- Invalid `page`, `page_size`, or conflicting parameters (e.g., `top` with pagination):
   ```json
   {
-    "error": "'page' and 'page_size' must be integers."
+    "error": "'top' cannot be used with 'page' or 'page_size'."
+  }
+  ```
+- Invalid `granularity` value:
+  ```json
+  {
+    "error": "Invalid granularity. Use 'day' or 'month'."
+  }
+  ```
+- Invalid `group_by` value:
+  ```json
+  {
+    "error": "Invalid group_by value. Use 'country', 'date', or None."
   }
   ```
 
@@ -71,22 +93,26 @@ GET /v3/signup-metrics
 
 ### **2. Get Retained User Metrics**
 
-Retrieve metrics for retained (active) users within a specified date range.
+Retrieve metrics for retained (active) users within a specified date range, with options for filtering and pagination.
 
 #### **Endpoint**
 
 ```
-GET /v3/retained-user-metrics
+GET /v3/metrics/retained
 ```
 
 #### **Query Parameters**
 
-| Parameter   | Type   | Required | Description                                                                       |
-| ----------- | ------ | -------- | --------------------------------------------------------------------------------- |
-| `start`     | string | Yes      | Start date in "YYYY-MM-DD" format.                                                |
-| `end`       | string | Yes      | End date in "YYYY-MM-DD" format.                                                  |
-| `page`      | int    | No       | Page number for pagination. Defaults to `1`.                                      |
-| `page_size` | int    | No       | Number of records per page. Defaults to `10`. Maximum recommended value is `100`. |
+| Parameter      | Type   | Required | Description                                                                          |
+| -------------- | ------ | -------- | ------------------------------------------------------------------------------------ |
+| `start_date`   | string | Yes      | Start date in "YYYY-MM-DD" format.                                                   |
+| `end_date`     | string | Yes      | End date in "YYYY-MM-DD" format.                                                     |
+| `country_code` | string | No       | Country code for filtering retained users.                                           |
+| `granularity`  | string | No       | Granularity for date grouping: "day" or "month". Defaults to "day".                  |
+| `group_by`     | string | No       | Grouping option: "country", "date", or None. Defaults to None (returns total count). |
+| `top`          | int    | No       | Limits the number of results returned (overrides `page` and `page_size`).            |
+| `page`         | int    | No       | Page number for pagination. Defaults to `1`.                                         |
+| `page_size`    | int    | No       | Number of records per page. Defaults to `50`. Maximum recommended value is `100`.    |
 
 #### **Response**
 
@@ -96,18 +122,24 @@ GET /v3/retained-user-metrics
 
 ```json
 {
-  "total_retained_user_count": 75,
-  "total_country_count": 4,
-  "data": {
-    "2024-01-01": {
-      "CM": { "retained_user_count": 25 },
-      "NG": { "retained_user_count": 15 }
+  "total_retained_users": 75,
+  "pagination": {
+    "page": 1,
+    "page_size": 50,
+    "total_pages": 3,
+    "total_records": 75
+  },
+  "data": [
+    {
+      "country_code": "CM",
+      "retained_users": 25
     },
-    "2024-01-02": {
-      "CA": { "retained_user_count": 20 },
-      "AU": { "retained_user_count": 15 }
-    }
-  }
+    {
+      "country_code": "NG",
+      "retained_users": 15
+    },
+    ...
+  ]
 }
 ```
 
@@ -118,12 +150,24 @@ GET /v3/retained-user-metrics
 - Missing required parameters:
   ```json
   {
-    "error": "Invalid input parameters. Provide 'start' and 'end' dates."
+    "error": "Invalid input parameters. Provide 'start_date' and 'end_date'."
   }
   ```
-- Invalid `page` or `page_size`:
+- Invalid `page`, `page_size`, or conflicting parameters (e.g., `top` with pagination):
   ```json
   {
-    "error": "'page' and 'page_size' must be integers."
+    "error": "'top' cannot be used with 'page' or 'page_size'."
+  }
+  ```
+  - Invalid `granularity` value:
+  ```json
+  {
+    "error": "Invalid granularity. Use 'day' or 'month'."
+  }
+  ```
+- Invalid `group_by` value:
+  ```json
+  {
+    "error": "Invalid group_by value. Use 'country', 'date', or None."
   }
   ```

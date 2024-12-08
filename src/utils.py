@@ -3,7 +3,9 @@
 import os
 import uuid
 import base64
+import re
 import json
+from datetime import datetime
 from functools import wraps
 
 from cryptography.hazmat.primitives.asymmetric import x25519 as x25519_core
@@ -423,3 +425,71 @@ def get_supported_platforms():
     """Get supported platforms"""
     platform_details = load_platforms_from_file(SUPPORTED_PLATFORM_FILE_PATH)
     return tuple(platform["name"] for platform in platform_details)
+
+
+def validate_metrics_args(start_date, end_date, top=None, page=None, page_size=None):
+    """
+    Validates arguments for metrics endpoints,
+
+    Args:
+        start_date (str): Start date in "YYYY-MM-DD" format.
+        end_date (str): End date in "YYYY-MM-DD" format.
+        top (int, optional): Maximum number of results to return.
+        page (int, optional): Page number for pagination.
+        page_size (int, optional): Number of records per page.
+
+    Raises:
+        ValueError: If any of the validations fail.
+    """
+    date_pattern = r"^\d{4}-\d{2}-\d{2}$"
+
+    if not re.match(date_pattern, start_date):
+        raise ValueError(f"'start_date' must be in 'YYYY-MM-DD' format: {start_date}")
+    if not re.match(date_pattern, end_date):
+        raise ValueError(f"'end_date' must be in 'YYYY-MM-DD' format: {end_date}")
+
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    if start_dt >= end_dt:
+        raise ValueError("'start_date' must be earlier than 'end_date'.")
+
+    for arg, name in [(top, "top"), (page, "page"), (page_size, "page_size")]:
+        if arg is not None:
+            if not isinstance(arg, int):
+                raise ValueError(f"'{name}' must be an integer: {arg}")
+            if arg <= 0:
+                raise ValueError(f"'{name}' must be a positive integer: {arg}")
+
+    if top is not None and (page is not None or page_size is not None):
+        raise ValueError("'top' cannot be used with 'page' or 'page_size'.")
+
+
+def filter_dict(original_dict, keys_to_remove=None, include_only=None):
+    """
+    Filter a dictionary by either removing specified keys or including only specified keys.
+
+    Args:
+        original_dict (dict): The dictionary to filter.
+        keys_to_remove (iterable, optional): A collection of keys to be removed from the dictionary.
+        include_only (iterable, optional): A collection of keys to include in the filtered
+            dictionary, in the specified order.
+
+    Returns:
+        dict: A new dictionary filtered according to the specified criteria.
+
+    Raises:
+        ValueError: If both `keys_to_remove` and `include_only` are provided.
+    """
+    if keys_to_remove and include_only:
+        raise ValueError("Cannot specify both 'keys_to_remove' and 'include_only'.")
+
+    if include_only is not None:
+        return {key: original_dict[key] for key in include_only if key in original_dict}
+
+    if keys_to_remove is not None:
+        new_dict = original_dict.copy()
+        for key in keys_to_remove:
+            new_dict.pop(key, None)
+        return new_dict
+
+    return original_dict
