@@ -246,7 +246,6 @@ def retained_users():
         raise BadRequest(str(e)) from e
 
     try:
-        print(filters)
         result = get_retained_users(filters=filters, group_by=group_by, options=options)
     except ValueError as e:
         raise BadRequest(str(e)) from e
