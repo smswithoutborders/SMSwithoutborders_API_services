@@ -176,26 +176,36 @@ def get_entities_analysis():
 def signup_users():
     """Endpoint to retrieve signup user data based on specified filters and grouping."""
 
-    filters = request.args.to_dict()
+    args = request.args
+    filters = args.to_dict()
+
+    group_by = args.get("group_by", type=str)
+    top = args.get("top", type=int)
+    has_pagination = top is None and group_by is not None
+
     options = {
-        "granularity": request.args.get("granularity", type=str),
-        "top": request.args.get("top", type=int),
-        "page": request.args.get("page", type=int),
-        "page_size": request.args.get("page_size", type=int),
-        "group_by": request.args.get("group_by", type=str),
+        "granularity": args.get("granularity", type=str, default="day"),
+        "top": top,
+        "page": args.get("page", type=int, default=1) if has_pagination else None,
+        "page_size": (
+            args.get("page_size", type=int, default=50) if has_pagination else None
+        ),
+        "group_by": group_by,
     }
 
+    combined_options = {**filters, **options}
+
     try:
-        filtered_options = filter_dict(options, ("granularity", "group_by"))
-        print(filtered_options)
+        filtered_options = filter_dict(
+            combined_options,
+            include_only=("start_date", "end_date", "top", "page", "page_size"),
+        )
         validate_metrics_args(**filtered_options)
     except ValueError as e:
         raise BadRequest(str(e)) from e
 
     try:
-        result = get_signup_users(
-            filters=filters, group_by=options["group_by"], options=options
-        )
+        result = get_signup_users(filters=filters, group_by=group_by, options=options)
     except ValueError as e:
         raise BadRequest(str(e)) from e
 
@@ -207,26 +217,28 @@ def signup_users():
 def retained_users():
     """Endpoint to retrieve retained user data based on specified filters and grouping."""
 
-    filters = request.args.to_dict()
+    args = request.args
+    filters = args.to_dict()
+
+    group_by = args.get("group_by", type=str)
+    top = args.get("top", type=int)
+    has_pagination = top is None and group_by is not None
+
     options = {
-        "granularity": request.args.get("granularity", type=str, default="day"),
-        "top": request.args.get("top", type=int),
-        "page": (
-            request.args.get("page", type=int, default=1)
-            if request.args.get("top") is None
-            else None
-        ),
+        "granularity": args.get("granularity", type=str, default="day"),
+        "top": top,
+        "page": args.get("page", type=int, default=1) if has_pagination else None,
         "page_size": (
-            request.args.get("page_size", type=int, default=50)
-            if request.args.get("top") is None
-            else None
+            args.get("page_size", type=int, default=50) if has_pagination else None
         ),
-        "group_by": request.args.get("group_by", type=str),
+        "group_by": group_by,
     }
+
+    combined_options = {**filters, **options}
 
     try:
         filtered_options = filter_dict(
-            filters | options,
+            combined_options,
             include_only=("start_date", "end_date", "top", "page", "page_size"),
         )
         validate_metrics_args(**filtered_options)
@@ -234,12 +246,12 @@ def retained_users():
         raise BadRequest(str(e)) from e
 
     try:
-        result = get_retained_users(
-            filters=filters, group_by=options["group_by"], options=options
-        )
+        print(filters)
+        result = get_retained_users(filters=filters, group_by=group_by, options=options)
     except ValueError as e:
         raise BadRequest(str(e)) from e
 
+    logger.info("Successfully fetched retained metrics.")
     return jsonify(result)
 
 

@@ -5,7 +5,7 @@ import uuid
 import base64
 import re
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from cryptography.hazmat.primitives.asymmetric import x25519 as x25519_core
@@ -427,9 +427,15 @@ def get_supported_platforms():
     return tuple(platform["name"] for platform in platform_details)
 
 
-def validate_metrics_args(start_date, end_date, top=None, page=None, page_size=None):
+def validate_metrics_args(
+    start_date: str = None,
+    end_date: str = None,
+    top=None,
+    page=None,
+    page_size=None,
+):
     """
-    Validates arguments for metrics endpoints,
+    Validates arguments for metrics endpoints.
 
     Args:
         start_date (str): Start date in "YYYY-MM-DD" format.
@@ -441,15 +447,26 @@ def validate_metrics_args(start_date, end_date, top=None, page=None, page_size=N
     Raises:
         ValueError: If any of the validations fail.
     """
+    if start_date is None:
+        start_date = datetime.strftime(datetime.now() - timedelta(days=30), "%Y-%m-%d")
+    if end_date is None:
+        end_date = datetime.strftime(datetime.now(), "%Y-%m-%d")
+
     date_pattern = r"^\d{4}-\d{2}-\d{2}$"
-
     if not re.match(date_pattern, start_date):
-        raise ValueError(f"'start_date' must be in 'YYYY-MM-DD' format: {start_date}")
+        raise ValueError(
+            f"Invalid 'start_date' format: '{start_date}'. "
+            "Please provide a date in the 'YYYY-MM-DD' format."
+        )
     if not re.match(date_pattern, end_date):
-        raise ValueError(f"'end_date' must be in 'YYYY-MM-DD' format: {end_date}")
+        raise ValueError(
+            f"Invalid 'start_date' format: '{end_date}'. "
+            "Please provide a date in the 'YYYY-MM-DD' format."
+        )
 
-    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    start_dt = parse_date(start_date, "start_date")
+    end_dt = parse_date(end_date, "end_date")
+
     if start_dt >= end_dt:
         raise ValueError("'start_date' must be earlier than 'end_date'.")
 
@@ -462,6 +479,46 @@ def validate_metrics_args(start_date, end_date, top=None, page=None, page_size=N
 
     if top is not None and (page is not None or page_size is not None):
         raise ValueError("'top' cannot be used with 'page' or 'page_size'.")
+
+
+def parse_date(date_str: str, field_name: str) -> datetime:
+    """
+    Validates and parses a date string.
+
+    Args:
+        date_str (str): The date string to validate.
+        field_name (str): Name of the field (for error messages).
+
+    Returns:
+        datetime: Parsed datetime object.
+    """
+    try:
+        parsed_date = datetime.strptime(date_str, "%Y-%m-%d")
+        return parsed_date
+    except ValueError as e:
+        error_message = str(e)
+
+        if "unconverted data remains" in error_message:
+            raise ValueError(
+                f"Invalid '{field_name}': '{date_str}'. Format must be 'YYYY-MM-DD'."
+            ) from e
+        if "month must be in" in error_message:
+            raise ValueError(
+                f"Invalid '{field_name}': '{date_str}'. The month value is out of range (01-12)."
+            ) from e
+        if "day is out of range" in error_message:
+            raise ValueError(
+                f"Invalid '{field_name}': '{date_str}'. The day is out of range for "
+                "the given month and year."
+            ) from e
+        if "does not match format" in error_message:
+            raise ValueError(
+                f"Invalid '{field_name}': '{date_str}'. Format must be 'YYYY-MM-DD'."
+            ) from e
+
+        raise ValueError(
+            f"Invalid '{field_name}': '{date_str}'. {error_message}"
+        ) from e
 
 
 def filter_dict(original_dict, keys_to_remove=None, include_only=None):
