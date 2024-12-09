@@ -10,6 +10,7 @@ import phonenumbers
 import vault_pb2
 import vault_pb2_grpc
 
+from src import signups
 from src.entity import create_entity, find_entity
 from src.tokens import fetch_entity_tokens, create_entity_token, find_token
 from src.crypto import generate_hmac
@@ -904,6 +905,8 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                     message,
                     grpc.StatusCode.INVALID_ARGUMENT,
                 )
+
+            signups.create_record(country_code=request.country_code, source="bridges")
 
             return response(success=True, message=message_body if MOCK_OTP else message)
 

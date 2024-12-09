@@ -10,6 +10,7 @@ Technology developed by the SMSWithoutBorders team to securely store and manage 
    - [Long-Lived Tokens (LLTs)](docs/specifications.md#1-long-lived-tokens-llts)
    - [Device IDs](docs/specifications.md#2-device-id)
    - [Auth Phrase](docs/specifications.md#3-auth-phrase)
+4. [REST API Resources](docs/api_versions.md)
 
 ## Contributing
 
