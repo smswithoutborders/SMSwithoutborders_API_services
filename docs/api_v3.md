@@ -52,7 +52,7 @@ GET /v3/metrics/signup
       "signup_users": 30
     },
     {
-      "country_code": "NG",
+      "timeframe": "2024-12-01",
       "signup_users": 20
     },
     ...
@@ -135,7 +135,7 @@ GET /v3/metrics/retained
       "retained_users": 25
     },
     {
-      "country_code": "NG",
+      "timeframe": "2024-12-01",
       "retained_users": 15
     },
     ...

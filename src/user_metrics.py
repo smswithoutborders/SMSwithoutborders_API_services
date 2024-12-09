@@ -92,6 +92,13 @@ def get_signup_users(filters=None, group_by=None, options=None):
 
     total_signup_users = query.select(fn.COUNT(Signups.id)).scalar()
 
+    if group_by is None:
+        return {
+            "data": [],
+            "pagination": {},
+            "total_signup_users": total_signup_users,
+        }
+
     if group_by == "country":
         query = (
             query.select(

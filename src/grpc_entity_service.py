@@ -10,6 +10,7 @@ import phonenumbers
 import vault_pb2
 import vault_pb2_grpc
 
+from src import signups
 from src.entity import create_entity, find_entity
 from src.tokens import fetch_entity_tokens
 from src.crypto import generate_hmac, verify_hmac
@@ -378,6 +379,8 @@ class EntityService(vault_pb2_grpc.EntityServicer):
                 return pow_response
 
             message, expires = pow_response
+
+            signups.create_record(country_code=request.country_code, source="platforms")
 
             return response(
                 requires_ownership_proof=True,
