@@ -101,11 +101,7 @@ def get_signup_users(filters=None, group_by=None, options=None):
             .order_by(fn.COUNT(Signups.id).desc())
         )
     elif group_by == "date":
-        timeframe = (
-            fn.DATE(Signups.date_created)
-            if granularity == "day"
-            else fn.DATE_TRUNC("month", Signups.date_created)
-        ).alias("timeframe")
+        timeframe = Signups.date_created.truncate(granularity).alias("timeframe")
         query = (
             query.select(timeframe, fn.COUNT(Signups.id).alias("signup_users"))
             .group_by(timeframe)
@@ -128,7 +124,7 @@ def get_signup_users(filters=None, group_by=None, options=None):
             }
             if group_by == "country"
             else {
-                "timeframe": row.timeframe,
+                "timeframe": str(row.timeframe.date()),
                 "signup_users": row.signup_users,
             }
         )
@@ -279,11 +275,7 @@ def get_retained_users(filters=None, group_by=None, options=None):
             result = result[start_idx:end_idx]
 
     elif group_by == "date":
-        timeframe = (
-            fn.DATE(Entity.date_created)
-            if granularity == "day"
-            else fn.DATE_TRUNC("month", Entity.date_created)
-        ).alias("timeframe")
+        timeframe = Entity.date_created.truncate(granularity).alias("timeframe")
         query = (
             query.select(timeframe, fn.COUNT(Entity.eid).alias("retained_users"))
             .group_by(timeframe)
@@ -293,7 +285,10 @@ def get_retained_users(filters=None, group_by=None, options=None):
         total_records = query.count()
         query = query.limit(top) if top else query.paginate(page, page_size)
         result = [
-            {"timeframe": str(row.timeframe), "retained_users": row.retained_users}
+            {
+                "timeframe": str(row.timeframe.date()),
+                "retained_users": row.retained_users,
+            }
             for row in query
         ]
 
