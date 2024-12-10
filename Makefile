@@ -13,7 +13,7 @@ start-rest-api:
 			--access-logfile=- \
 			--certfile='${SSL_CERTIFICATE}' \
 			--keyfile='${SSL_KEY}' \
-			--preload \
+			--thread 15 \
 			--timeout 30 \
 			server:app; \
 	)

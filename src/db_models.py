@@ -130,5 +130,19 @@ class OTP(Model):
         self.save()
 
 
+class Signups(Model):
+    """Model representing Signup Attempts."""
+
+    country_code = CharField()
+    source = CharField()
+    date_created = DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        """Meta class to define database connection."""
+
+        database = database
+        table_name = "signups"
+
+
 if Configurations.MODE in ("production", "development"):
-    create_tables([Entity, OTPRateLimit, Token, PasswordRateLimit, OTP])
+    create_tables([Entity, OTPRateLimit, Token, PasswordRateLimit, OTP, Signups])
