@@ -39,6 +39,7 @@ GET /v3/metrics/signup
 
 ```json
 {
+  "total_countries": 10,
   "total_signup_users": 120,
   "pagination": {
     "page": 1,
@@ -122,6 +123,7 @@ GET /v3/metrics/retained
 
 ```json
 {
+  "total_countries": 10,
   "total_retained_users": 75,
   "pagination": {
     "page": 1,

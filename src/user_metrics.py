@@ -41,6 +41,7 @@ def get_signup_users(filters=None, group_by=None, options=None):
                 - page_size (int): Records per page (omitted if `group_by` is None).
                 - total_pages (int): Total pages (omitted if `group_by` is None).
             - total_signup_users (int): Total number of signup users across all records.
+            - total_countries (int): Total number of distinct countries with signups.
     """
     filters = filters or {}
     options = options or {}
@@ -91,12 +92,14 @@ def get_signup_users(filters=None, group_by=None, options=None):
         query = query.where(Signups.country_code == country_code)
 
     total_signup_users = query.select(fn.COUNT(Signups.id)).scalar()
+    total_countries = query.select(fn.COUNT(fn.DISTINCT(Signups.country_code))).scalar()
 
     if group_by is None:
         return {
             "data": [],
             "pagination": {},
             "total_signup_users": total_signup_users,
+            "total_countries": total_countries,
         }
 
     if group_by == "country":
@@ -153,6 +156,7 @@ def get_signup_users(filters=None, group_by=None, options=None):
         "data": result,
         "pagination": pagination,
         "total_signup_users": total_signup_users,
+        "total_countries": total_countries,
     }
 
 
@@ -187,6 +191,7 @@ def get_retained_users(filters=None, group_by=None, options=None):
                 - page_size (int): Records per page (omitted if `group_by` is None).
                 - total_pages (int): Total pages (omitted if `group_by` is None).
             - total_retained_users (int): Total number of retained users across all records.
+            - total_countries (int): Total number of unique countries.
     """
     filters = filters or {}
     options = options or {}
@@ -199,7 +204,7 @@ def get_retained_users(filters=None, group_by=None, options=None):
     top = options.get("top")
     page = options.get("page", 1)
     page_size = options.get("page_size", 50)
-    batch_size = options.get("batch_size", 1000)
+    batch_size = options.get("batch_size", 500)
 
     if group_by not in {None, "country", "date"}:
         raise ValueError("Invalid group_by value. Use 'country', 'date', or None.")
@@ -234,37 +239,36 @@ def get_retained_users(filters=None, group_by=None, options=None):
     if end_date:
         query = query.where(Entity.date_created <= end_date)
 
-    def decrypt_filter_rows(query, country_code, batch_size):
-        decrypted_rows = []
+    def decrypt_and_filter_generator(query, country_code, batch_size):
         batch_number = 1
         while True:
             batch_query = query.paginate(batch_number, batch_size)
             batch_results = list(batch_query)
             if not batch_results:
                 break
-            decrypted_rows.extend(
-                row
-                for row in batch_results
-                if decrypt_and_decode(row.country_code) == country_code
-            )
+            for row in batch_results:
+                decrypted_code = decrypt_and_decode(row.country_code)
+                if country_code is None or decrypted_code == country_code:
+                    yield row, decrypted_code
             batch_number += 1
-        return decrypted_rows
 
-    if country_code:
-        filtered_rows = decrypt_filter_rows(query, country_code, batch_size)
-        query = Entity.select().where(Entity.eid << [row.eid for row in filtered_rows])
+    decrypted_rows = decrypt_and_filter_generator(query, country_code, batch_size)
 
-    total_retained_users = query.select(fn.COUNT(Entity.eid)).scalar()
+    total_retained_users = 0
+    unique_countries = set()
+    country_aggregates = defaultdict(int)
 
+    for _, decrypted_country in decrypted_rows:
+        total_retained_users += 1
+        unique_countries.add(decrypted_country)
+        if group_by == "country":
+            country_aggregates[decrypted_country] += 1
+
+    total_countries = len(unique_countries)
     result = []
     total_records = 0
 
     if group_by == "country":
-        country_aggregates = defaultdict(int)
-        for row in query:
-            decrypted_country = decrypt_and_decode(row.country_code)
-            country_aggregates[decrypted_country] += 1
-
         result = sorted(
             [
                 {"country_code": k, "retained_users": v}
@@ -302,11 +306,6 @@ def get_retained_users(filters=None, group_by=None, options=None):
     elif group_by is None:
         result = []
 
-    else:
-        raise ValueError(
-            "Invalid group_by value. Use 'country', 'date', or leave empty."
-        )
-
     pagination = (
         {
             "page": page,
@@ -322,4 +321,5 @@ def get_retained_users(filters=None, group_by=None, options=None):
         "data": result,
         "pagination": pagination,
         "total_retained_users": total_retained_users,
+        "total_countries": total_countries,
     }
