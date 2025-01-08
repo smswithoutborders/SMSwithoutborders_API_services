@@ -42,6 +42,7 @@ def get_signup_users(filters=None, group_by=None, options=None):
                 - total_pages (int): Total pages (omitted if `group_by` is None).
             - total_signup_users (int): Total number of signup users across all records.
             - total_countries (int): Total number of distinct countries with signups.
+            - countries (list): List of distinct countries.
     """
     filters = filters or {}
     options = options or {}
@@ -94,12 +95,16 @@ def get_signup_users(filters=None, group_by=None, options=None):
     total_signup_users = query.select(fn.COUNT(Signups.id)).scalar()
     total_countries = query.select(fn.COUNT(fn.DISTINCT(Signups.country_code))).scalar()
 
+    countries_query = query.select(Signups.country_code.distinct())
+    countries = [row.country_code for row in countries_query]
+
     if group_by is None:
         return {
             "data": [],
             "pagination": {},
             "total_signup_users": total_signup_users,
             "total_countries": total_countries,
+            "countries": countries,
         }
 
     if group_by == "country":
@@ -157,13 +162,14 @@ def get_signup_users(filters=None, group_by=None, options=None):
         "pagination": pagination,
         "total_signup_users": total_signup_users,
         "total_countries": total_countries,
+        "countries": countries,
     }
 
 
 def get_retained_users(filters=None, group_by=None, options=None):
     """Retrieve retained user data based on specified filters and grouping.
 
-     Args:
+    Args:
         filters (dict, optional): A dictionary containing filtering options:
             - start_date (str): Start date for filtering records (YYYY-MM-DD).
             - end_date (str): End date for filtering records (YYYY-MM-DD).
@@ -192,6 +198,7 @@ def get_retained_users(filters=None, group_by=None, options=None):
                 - total_pages (int): Total pages (omitted if `group_by` is None).
             - total_retained_users (int): Total number of retained users across all records.
             - total_countries (int): Total number of unique countries.
+            - countries (list): List of unique countries involved in the result.
     """
     filters = filters or {}
     options = options or {}
@@ -322,4 +329,5 @@ def get_retained_users(filters=None, group_by=None, options=None):
         "pagination": pagination,
         "total_retained_users": total_retained_users,
         "total_countries": total_countries,
+        "countries": list(unique_countries),
     }
