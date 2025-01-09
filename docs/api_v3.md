@@ -41,6 +41,11 @@ GET /v3/metrics/signup
 {
   "total_countries": 10,
   "total_signup_users": 120,
+  "total_countries": 2,
+  "countries": [
+    "CM",
+    "NG"
+  ],
   "pagination": {
     "page": 1,
     "page_size": 50,
@@ -125,6 +130,11 @@ GET /v3/metrics/retained
 {
   "total_countries": 10,
   "total_retained_users": 75,
+  "total_countries": 2,
+  "countries": [
+    "CM",
+    "NG"
+  ],
   "pagination": {
     "page": 1,
     "page_size": 50,
