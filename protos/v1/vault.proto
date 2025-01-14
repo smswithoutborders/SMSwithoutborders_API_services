@@ -62,6 +62,8 @@ message AuthenticateEntityResponse {
   string message = 5;
   // The next available time to request another proof of ownership.
   int32 next_attempt_timestamp = 6;
+  // indicates if user must reset their password
+  bool requires_password_reset = 7;
 }
 
 // Request message for listing entity's stored tokens.
