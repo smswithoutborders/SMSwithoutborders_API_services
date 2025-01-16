@@ -157,6 +157,8 @@ message EncryptPayloadRequest {
   string device_id = 1;
   // Plaintext payload to be encrypted.
   string payload_plaintext = 2;
+  // The phone number of the entity.
+  string phone_number = 3;
 }
 
 // Response message for encrypting payload.
