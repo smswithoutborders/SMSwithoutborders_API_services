@@ -130,6 +130,7 @@ GET /v3/metrics/retained
 {
   "total_countries": 10,
   "total_retained_users": 75,
+  "total_retained_users_with_tokens": 70,
   "total_countries": 2,
   "countries": [
     "CM",
