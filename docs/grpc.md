@@ -617,8 +617,6 @@ localhost:6000 vault.v1.Entity/CreateBridgeEntity <payload.json
 
 ```json
 {
-  "country_code": "CM",
-  "phone_number": "+237123456789",
   "client_publish_pub_key": "x25519 client publish public key"
 }
 ```
@@ -711,8 +709,6 @@ localhost:6000 vault.v1.Entity/CreateBridgeEntity <payload.json
 
 ```json
 {
-  "country_code": "CM",
-  "phone_number": "+237123456789",
   "ownership_proof_response": "123456"
 }
 ```
@@ -727,6 +723,10 @@ localhost:6000 vault.v1.Entity/CreateBridgeEntity <payload.json
   "message": "Bridge entity creation completed successfully."
 }
 ```
+> [!NOTE]
+>
+> Reference the [bridge specificatin docs](https://github.com/smswithoutborders/RelaySMS-Bridge-Server/blob/main/docs/specifications.md) 
+>
 
 
 ### List an Entity's Stored Tokens
