@@ -457,7 +457,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 context,
                 request,
                 response,
-                ["device_id", "payload_plaintext"],
+                [("device_id", "phone_number"), "payload_plaintext"],
             )
 
         def encrypt_message(entity_obj):
@@ -514,16 +514,27 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
             if invalid_fields_response:
                 return invalid_fields_response
 
-            entity_obj = find_entity(device_id=request.device_id)
-
-            if not entity_obj:
-                return self.handle_create_grpc_error_response(
-                    context,
-                    response,
-                    f"Invalid device ID '{request.device_id}'. "
-                    "Please log in again to obtain a valid device ID.",
-                    grpc.StatusCode.UNAUTHENTICATED,
-                )
+            if request.device_id:
+                entity_obj = find_entity(device_id=request.device_id)
+                if not entity_obj:
+                    return self.handle_create_grpc_error_response(
+                        context,
+                        response,
+                        f"Entity associated with device ID '{request.device_id}' not found. "
+                        "Please log in again to obtain a valid device ID.",
+                        grpc.StatusCode.UNAUTHENTICATED,
+                    )
+            else:
+                phone_number_hash = generate_hmac(HASHING_KEY, request.phone_number)
+                entity_obj = find_entity(phone_number_hash=phone_number_hash)
+                if not entity_obj:
+                    return self.handle_create_grpc_error_response(
+                        context,
+                        response,
+                        f"Entity associated with phone number '{request.phone_number}' not found. "
+                        "Please check your phone number and try again.",
+                        grpc.StatusCode.UNAUTHENTICATED,
+                    )
 
             encrypted_response, encrypting_error = encrypt_message(entity_obj)
             if encrypting_error:

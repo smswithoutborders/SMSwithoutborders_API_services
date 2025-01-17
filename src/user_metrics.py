@@ -6,7 +6,7 @@ Public License was not distributed with this file, see <https://www.gnu.org/lice
 
 from collections import defaultdict
 from peewee import fn
-from src.db_models import Entity, Signups
+from src.db_models import Entity, Signups, Token
 from src.utils import decrypt_and_decode
 
 
@@ -246,6 +246,10 @@ def get_retained_users(filters=None, group_by=None, options=None):
     if end_date:
         query = query.where(Entity.date_created <= end_date)
 
+    total_retained_users_with_tokens = (
+        query.select(fn.COUNT(fn.DISTINCT(Entity.eid))).join(Token).scalar()
+    )
+
     def decrypt_and_filter_generator(query, country_code, batch_size):
         batch_number = 1
         while True:
@@ -328,6 +332,7 @@ def get_retained_users(filters=None, group_by=None, options=None):
         "data": result,
         "pagination": pagination,
         "total_retained_users": total_retained_users,
+        "total_retained_users_with_tokens": total_retained_users_with_tokens,
         "total_countries": total_countries,
         "countries": list(unique_countries),
     }

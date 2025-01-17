@@ -365,6 +365,7 @@ of ownership for the phone number.
 | Field                    | Type   | Description                                                                                                 |
 | ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------- |
 | requires_ownership_proof | bool   | An indicator if proof of ownership is required. `true` if required, `false` otherwise.                      |
+| requires_password_reset  | bool   | An indicator if a user must reset their password. `true` if required, `false` otherwise.                    |
 | next_attempt_timestamp   | int32  | The next available time to request another proof of ownership (in Unix seconds) if the first attempt fails. |
 | message                  | string | A response message from the server.                                                                         |
 

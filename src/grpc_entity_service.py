@@ -463,6 +463,12 @@ class EntityService(vault_pb2_grpc.EntityServicer):
                     grpc.StatusCode.UNAVAILABLE,
                 )
 
+            if not entity_obj.password_hash:
+                return response(
+                    requires_password_reset=True,
+                    message="Please reset your password to continue.",
+                )
+
             if not verify_hmac(HASHING_KEY, request.password, entity_obj.password_hash):
                 register_password_attempt(entity_obj.eid)
                 return self.handle_create_grpc_error_response(
