@@ -561,10 +561,6 @@ intend to use. This step ensures security and authenticity in the entity creatio
 | country_code          | string | The [ISO 3166-1 alpha-2 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) associated with the phone number. e.g., `CM` for Cameroon. |
 | client_publish_pub_key | string | An `X25519` public key for publishing, `base64 encoded`.                                                                                   |
 
-> [!NOTE]
->
-> Technically the server gets the phone number and country code from the gateway client.
->
                                
 ---
 
@@ -617,6 +613,8 @@ localhost:6000 vault.v1.Entity/CreateBridgeEntity <payload.json
 
 ```json
 {
+  "country_code": "CM",
+  "phone_number": "+237123456789",
   "client_publish_pub_key": "x25519 client publish public key"
 }
 ```
@@ -709,6 +707,8 @@ localhost:6000 vault.v1.Entity/CreateBridgeEntity <payload.json
 
 ```json
 {
+  "country_code": "CM",
+  "phone_number": "+237123456789",
   "ownership_proof_response": "123456"
 }
 ```
@@ -723,10 +723,6 @@ localhost:6000 vault.v1.Entity/CreateBridgeEntity <payload.json
   "message": "Bridge entity creation completed successfully."
 }
 ```
-> [!NOTE]
->
-> Reference the [bridge specificatin docs](https://github.com/smswithoutborders/RelaySMS-Bridge-Server/blob/main/docs/specifications.md) 
->
 
 
 ### List an Entity's Stored Tokens
