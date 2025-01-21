@@ -724,6 +724,71 @@ localhost:6000 vault.v1.Entity/CreateBridgeEntity <payload.json
 }
 ```
 
+---
+
+### Authenticate Bridge Entity
+
+An entity represents a user or client in the vault.
+
+---
+
+##### Request
+
+> `request` **AuthenticateBridgeEntityRequest**
+
+| Field         | Type   | Description                                        |
+| ------------- | ------ | -------------------------------------------------- |
+| phone_number  | string | The phone number associated with the bridge entity. |
+
+---
+
+##### Response
+
+> `response` **AuthenticateBridgeEntityResponse**
+
+| Field   | Type   | Description                                  |
+| ------- | ------ | -------------------------------------------- |
+| message | string | A response message from the server.          |
+| success | bool   | Indicates whether authentication was successful. |
+
+---
+
+##### Method
+
+> `method` **AuthenticateBridgeEntity**
+
+---
+
+**Sample request**
+
+```bash
+grpcurl -plaintext \
+    -d @ \
+    -proto protos/v1/vault.proto \
+localhost:6000 vault.v1.Entity/AuthenticateBridgeEntity <payload.json
+```
+
+---
+
+**Sample payload.json**
+
+```json
+{
+  "phone_number": "+237123456789"
+}
+```
+
+---
+
+**Sample response**
+
+```json
+{
+  "success": true,
+  "message": "Bridge entity authenticated successfully."
+}
+```
+
 
 ### List an Entity's Stored Tokens
 
