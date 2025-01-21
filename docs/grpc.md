@@ -16,6 +16,7 @@
     - [Create Bridge Entity](#create-bridge-entity)
       - [Initiate Bridge Creation](#initiate-bridge-creation)
       - [Complete  Bridge Creation](#complete-bride-creation)
+    - [Authenticate Bridge Entity](#authenticate-bridge-entity)
     - [List an Entity's Stored Tokens](#list-an-entitys-stored-tokens)
     - [Delete An Entity](#delete-an-entity)
     - [Reset an Entity's Password](#reset-an-entitys-password)
