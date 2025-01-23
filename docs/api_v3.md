@@ -42,6 +42,7 @@ GET /v3/metrics/signup
   "total_countries": 10,
   "total_signup_users": 120,
   "total_countries": 2,
+  "total_signups_from_bridges": 3,
   "countries": [
     "CM",
     "NG"
