@@ -94,6 +94,8 @@ def get_signup_users(filters=None, group_by=None, options=None):
 
     total_signup_users = query.select(fn.COUNT(Signups.id)).scalar()
     total_countries = query.select(fn.COUNT(fn.DISTINCT(Signups.country_code))).scalar()
+    
+    total_signups_from_bridges = query.select(fn.COUNT(Signups.id)).where(Signups.source == 'bridges').scalar()
 
     countries_query = query.select(Signups.country_code.distinct())
     countries = [row.country_code for row in countries_query]
@@ -162,6 +164,7 @@ def get_signup_users(filters=None, group_by=None, options=None):
         "pagination": pagination,
         "total_signup_users": total_signup_users,
         "total_countries": total_countries,
+        "total_signups_from_bridges": total_signups_from_bridges,
         "countries": countries,
     }
 
