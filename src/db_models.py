@@ -12,6 +12,7 @@ from peewee import (
     BlobField,
     BooleanField,
 )
+from enum import Enum
 from src.db import connect
 from src.utils import create_tables
 from settings import Configurations
@@ -144,5 +145,93 @@ class Signups(Model):
         table_name = "signups"
 
 
+class KeypairStatus(Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    ARCHIVED = "archived"
+
+
+class StaticKeypairs(Model):
+    """Model representing static x25519 keypairs."""
+
+    kid = IntegerField()
+    keypair_bytes = BlobField()
+    status = CharField(
+        choices=[(status.value, status.value) for status in KeypairStatus]
+    )
+    date_last_used = DateTimeField(null=True)
+    date_created = DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        """Meta class to define database connection."""
+
+        database = database
+        table_name = "static_keypairs"
+        indexes = ((("kid", "status"), True),)
+
+    @classmethod
+    def create_keypair(cls, kid, keypair_bytes, status):
+        """Creates and stores a new keypair safely."""
+        if status not in KeypairStatus._value2member_map_:
+            raise ValueError(
+                f"Invalid status: {status}. Allowed: {[s.value for s in KeypairStatus]}"
+            )
+        with database.atomic():
+            return cls.create(
+                kid=kid,
+                keypair_bytes=keypair_bytes,
+                status=status,
+            )
+
+    @classmethod
+    def get_keypairs(cls, **criteria):
+        """Retrieves keypairs based on dynamic filtering criteria."""
+        query = cls.select()
+        if criteria:
+            for field, value in criteria.items():
+                query = query.where(getattr(cls, field) == value)
+        return list(query)
+
+    @classmethod
+    def get_keypair(cls, kid):
+        """Retrieves a keypair by its ID and updates `date_last_used`."""
+        keypair = cls.get_or_none(cls.kid == kid)
+        if keypair:
+            keypair.update_last_used()
+        return keypair
+
+    @classmethod
+    def keypair_exists(cls, kid):
+        """Checks if a keypair exists by ID."""
+        return cls.select().where(cls.kid == kid).exists()
+
+    @classmethod
+    def update_status(cls, kid, status):
+        """Updates the status of a keypair safely."""
+        if status not in KeypairStatus._value2member_map_:
+            raise ValueError(
+                f"Invalid status: {status}. Allowed: {[s.value for s in KeypairStatus]}"
+            )
+        with database.atomic():
+            return cls.update(status=status).where(cls.kid == kid).execute()
+
+    @classmethod
+    def delete_keypair(cls, kid):
+        """Deletes a keypair safely."""
+        with database.atomic():
+            keypair = cls.get_or_none(cls.kid == kid)
+            if keypair:
+                return keypair.delete_instance()
+            return None
+
+    def update_last_used(self):
+        """Updates the last used timestamp for this keypair instance."""
+        with database.atomic():
+            self.date_last_used = datetime.datetime.now()
+            self.save(only=[self.date_last_used])
+
+
 if Configurations.MODE in ("production", "development"):
-    create_tables([Entity, OTPRateLimit, Token, PasswordRateLimit, OTP, Signups])
+    create_tables(
+        [Entity, OTPRateLimit, Token, PasswordRateLimit, OTP, Signups, StaticKeypairs]
+    )
