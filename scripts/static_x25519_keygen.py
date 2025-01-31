@@ -39,7 +39,7 @@ def generate_keypair(kid: int) -> None:
         StaticKeypairs.create_keypair(
             kid=kid, keypair_bytes=keypair_ciphertext, status="active"
         )
-        logger.info("Successfully generated and stored keypair %d.", kid)
+        logger.debug("Successfully generated and stored keypair %d.", kid)
 
     except Exception as e:
         logger.exception("Failed to generate keypair %d: %s", kid, e)
