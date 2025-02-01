@@ -1,5 +1,6 @@
 """API V3 Blueprint"""
 
+import json
 from datetime import datetime
 import calendar
 
@@ -252,6 +253,26 @@ def retained_users():
 
     logger.info("Successfully fetched retained metrics.")
     return jsonify(result)
+
+
+@v3_blueprint.route("/keys/static-x25519", methods=["GET"])
+def fetch_static_x25519_keys():
+    """Fetch static x25519 public keys from a JSON file."""
+
+    static_keys_path = "static_x25519_pub_keys.json"
+
+    try:
+        with open(static_keys_path, "r", encoding="utf-8") as file:
+            static_keys = json.load(file)
+    except FileNotFoundError as exc:
+        logger.error("File not found: %s", static_keys_path)
+        raise NotFound("Static public keys not found") from exc
+    except json.JSONDecodeError as exc:
+        logger.error("Invalid JSON format in file: %s", static_keys_path)
+        raise BadRequest("Invalid key file format") from exc
+
+    logger.info("Successfully retrieved static x25519 public keys.")
+    return jsonify(static_keys)
 
 
 @v3_blueprint.errorhandler(BadRequest)
