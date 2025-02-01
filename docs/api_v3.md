@@ -8,7 +8,52 @@ https://vault.smswithoutborders.com
 
 ## **Endpoints**
 
-### **1. Get Signup Metrics**
+### **1. Get Static x25519 Public Keys**
+
+Retrieve static x25519 public keys from the system.
+
+#### **Endpoint**
+
+```
+GET /v3/keys/static-x25519
+```
+
+#### **Response**
+
+**Status Code: 200 OK**
+
+**Response Body:**
+
+```json
+[
+  {
+    "kid": 0,
+    "public_key": "..."
+  },
+  {
+    "kid": 1,
+    "public_key": "..."
+  },
+  {
+    "kid": 2,
+    "public_key": "..."
+  }
+]
+```
+
+**Status Code: 500 Internal Server Error**
+
+**Response Body:**
+
+```json
+{
+  "error": "Oops! Something went wrong. Please try again later."
+}
+```
+
+---
+
+### **2. Get Signup Metrics**
 
 Retrieve metrics for user signups within a specified date range, with options for filtering and pagination.
 
@@ -98,7 +143,7 @@ GET /v3/metrics/signup
 
 ---
 
-### **2. Get Retained User Metrics**
+### **3. Get Retained User Metrics**
 
 Retrieve metrics for retained (active) users within a specified date range, with options for filtering and pagination.
 
