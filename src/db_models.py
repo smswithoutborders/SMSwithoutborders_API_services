@@ -1,6 +1,11 @@
-"""Peewee Database ORM Models."""
+"""
+This program is free software: you can redistribute it under the terms
+of the GNU General Public License, v. 3.0. If a copy of the GNU General
+Public License was not distributed with this file, see <https://www.gnu.org/licenses/>.
+"""
 
 import datetime
+from enum import Enum
 from peewee import (
     Model,
     CharField,
@@ -12,10 +17,8 @@ from peewee import (
     BlobField,
     BooleanField,
 )
-from enum import Enum
 from src.db import connect
-from src.utils import create_tables
-from settings import Configurations
+from src.utils import create_tables, get_configs
 
 database = connect()
 
@@ -231,7 +234,7 @@ class StaticKeypairs(Model):
             self.save(only=[self.date_last_used])
 
 
-if Configurations.MODE in ("production", "development"):
+if get_configs("MODE", default_value="development") in ("production", "development"):
     create_tables(
         [Entity, OTPRateLimit, Token, PasswordRateLimit, OTP, Signups, StaticKeypairs]
     )

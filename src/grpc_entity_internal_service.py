@@ -1,4 +1,8 @@
-"""gRPC Entity Internal Service"""
+"""
+This program is free software: you can redistribute it under the terms
+of the GNU General Public License, v. 3.0. If a copy of the GNU General
+Public License was not distributed with this file, see <https://www.gnu.org/licenses/>.
+"""
 
 import base64
 import re
@@ -38,9 +42,9 @@ from base_logger import get_logger
 
 logger = get_logger(__name__)
 
-HASHING_KEY = load_key(get_configs("HASHING_SALT"), 32)
+HASHING_KEY = load_key(get_configs("HASHING_SALT", strict=True), 32)
 SUPPORTED_PLATFORMS = get_supported_platforms()
-MOCK_OTP = get_configs("MOCK_OTP")
+MOCK_OTP = get_configs("MOCK_OTP", default_value="true")
 MOCK_OTP = MOCK_OTP.lower() == "true" if MOCK_OTP is not None else False
 
 

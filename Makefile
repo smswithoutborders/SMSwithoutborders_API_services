@@ -18,7 +18,7 @@ start-rest-api:
 		--keyfile=$(SSL_KEY) \
 		--threads 15 \
 		--timeout 30 \
-		server:app
+		app:app
 
 grpc-compile:
 	$(call log_message,INFO - Compiling gRPC protos ...)
