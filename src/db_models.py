@@ -149,6 +149,10 @@ class Signups(Model):
 
 
 class KeypairStatus(Enum):
+    """
+    Enum representing the status of a keypair.
+    """
+
     ACTIVE = "active"
     INACTIVE = "inactive"
     ARCHIVED = "archived"

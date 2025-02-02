@@ -6,7 +6,6 @@ Public License was not distributed with this file, see <https://www.gnu.org/lice
 
 import os
 from concurrent import futures
-from datetime import datetime
 
 import grpc
 from grpc_interceptor import ServerInterceptor

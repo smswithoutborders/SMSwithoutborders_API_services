@@ -20,8 +20,9 @@ from src.crypto import encrypt_aes, decrypt_aes
 
 logger = get_logger("static.x25519.keygen")
 
-ENCRYPTION_KEY = load_key(get_configs("SHARED_KEY"), 32)
+ENCRYPTION_KEY = load_key(get_configs("SHARED_KEY", strict=True), 32)
 STATIC_KEYSTORE_PATH = get_configs("STATIC_X25519_KEYSTORE_PATH", strict=True)
+DEFAULT_EXPORT_PATH = os.path.join(STATIC_KEYSTORE_PATH, "exported_public_keys.json")
 
 
 def generate_keypair(kid: int) -> None:
@@ -60,7 +61,9 @@ def generate_keypairs(count: int) -> None:
     """Generates and stores multiple keypairs."""
     if os.path.exists(STATIC_KEYSTORE_PATH) and os.listdir(STATIC_KEYSTORE_PATH):
         logger.info(
-            "Keypairs already exist in %s. Skipping generation.", STATIC_KEYSTORE_PATH
+            "Keypair generation skipped: '%s' is not empty. To overwrite the content, "
+            "delete the directory or use a different one.",
+            STATIC_KEYSTORE_PATH,
         )
         return
 
@@ -72,13 +75,30 @@ def generate_keypairs(count: int) -> None:
     logger.info("Successfully generated %d keypairs.", count)
 
 
-def export_public_keys_to_file(file_path: str) -> None:
+def export_public_keys_to_file(file_path: str, yes: bool, skip_if_exists: bool) -> None:
     """Exports all public keys to a specified JSON file."""
+    file_path = file_path or DEFAULT_EXPORT_PATH
     try:
         dir_path = os.path.dirname(file_path)
 
         if dir_path:
             os.makedirs(dir_path, exist_ok=True)
+
+        if os.path.exists(file_path):
+            if skip_if_exists:
+                logger.info("Export skipped: %s already exists.", file_path)
+                return
+            if not yes:
+                confirm = (
+                    input(
+                        f"{file_path} already exists. Do you want to replace it? (y/N): "
+                    )
+                    .strip()
+                    .lower()
+                )
+                if confirm != "y":
+                    logger.info("Export aborted by user.")
+                    return
 
         active_keypairs = StaticKeypairs.get_keypairs(status="active")
 
@@ -149,11 +169,13 @@ def main() -> None:
 
     export_parser = subparser.add_parser("export", help="Export public keys")
     export_parser.add_argument(
-        "-f",
-        "--file",
-        type=str,
-        default="static_x25519_pub_keys.json",
-        help="Path to save the public keys file",
+        "-f", "--file", type=str, default=None, help="Path to save the public keys file"
+    )
+    export_parser.add_argument(
+        "-y", "--yes", action="store_true", help="Overwrite the file without prompting"
+    )
+    export_parser.add_argument(
+        "--skip-if-exists", action="store_true", help="Skip export if file exists"
     )
 
     subparser.add_parser("test", help="Test key agreement")
@@ -162,7 +184,9 @@ def main() -> None:
 
     commands = {
         "generate": lambda: generate_keypairs(args.number),
-        "export": lambda: export_public_keys_to_file(args.file),
+        "export": lambda: export_public_keys_to_file(
+            args.file, args.yes, args.skip_if_exists
+        ),
         "test": test_keypairs,
     }
 
