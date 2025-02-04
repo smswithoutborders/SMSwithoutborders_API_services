@@ -235,7 +235,7 @@ class StaticKeypairs(Model):
         """Updates the last used timestamp for this keypair instance."""
         with database.atomic():
             self.date_last_used = datetime.datetime.now()
-            self.save(only=[self.date_last_used])
+            self.save()
 
 
 if get_configs("MODE", default_value="development") in ("production", "development"):
