@@ -168,6 +168,7 @@ class StaticKeypairs(Model):
     )
     date_last_used = DateTimeField(null=True)
     date_created = DateTimeField(default=datetime.datetime.now)
+    usage_count = IntegerField(default=0)
 
     class Meta:
         """Meta class to define database connection."""
@@ -201,10 +202,11 @@ class StaticKeypairs(Model):
 
     @classmethod
     def get_keypair(cls, kid):
-        """Retrieves a keypair by its ID and updates `date_last_used`."""
+        """Retrieves a keypair by its ID."""
         keypair = cls.get_or_none(cls.kid == kid)
         if keypair:
             keypair.update_last_used()
+            keypair.update_usage_count()
         return keypair
 
     @classmethod
@@ -235,7 +237,13 @@ class StaticKeypairs(Model):
         """Updates the last used timestamp for this keypair instance."""
         with database.atomic():
             self.date_last_used = datetime.datetime.now()
-            self.save()
+            self.save(only=["date_last_used"])
+
+    def update_usage_count(self):
+        """Increments the usage count for this keypair instance."""
+        with database.atomic():
+            self.usage_count += 1
+            self.save(only=["usage_count"])
 
 
 if get_configs("MODE", default_value="development") in ("production", "development"):

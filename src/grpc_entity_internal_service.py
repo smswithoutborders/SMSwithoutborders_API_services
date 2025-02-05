@@ -261,7 +261,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
 
             if token:
                 token.account_tokens = encrypt_and_encode(request.token)
-                token.save()
+                token.save(only=["account_tokens"])
                 logger.info("Token overwritten successfully.")
 
                 return self.handle_create_grpc_error_response(
@@ -396,7 +396,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 )
 
             entity_obj.server_state = state.serialize()
-            entity_obj.save()
+            entity_obj.save(only=["server_state"])
             logger.info(
                 "Successfully decrypted payload for %s",
                 entity_obj.eid,
@@ -503,7 +503,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 )
 
             entity_obj.server_state = state.serialize()
-            entity_obj.save()
+            entity_obj.save(only=["server_state"])
             logger.info(
                 "Successfully encrypted payload for %s",
                 entity_obj.eid,
@@ -735,7 +735,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 )
 
             existing_tokens[0].account_tokens = encrypt_and_encode(request.token)
-            existing_tokens[0].save()
+            existing_tokens[0].save(only=["account_tokens"])
             logger.info("Successfully updated token for %s", entity_obj.eid)
 
             return response(
@@ -846,7 +846,7 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 )
 
             entity_obj.is_bridge_enabled = True
-            entity_obj.save()
+            entity_obj.save(only=["is_bridge_enabled"])
 
             return response(message="Bridge Entity Created Successfully", success=True)
 
@@ -874,7 +874,9 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 entity_obj.client_publish_pub_key = request.client_publish_pub_key
                 entity_obj.publish_keypair = entity_publish_keypair.serialize()
                 entity_obj.server_state = None
-                entity_obj.save()
+                entity_obj.save(
+                    only=["client_publish_pub_key", "publish_keypair", "server_state"]
+                )
             else:
                 fields = {
                     "eid": eid,
@@ -978,7 +980,13 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                     entity_obj.client_publish_pub_key = request.client_publish_pub_key
                     entity_obj.publish_keypair = server_publish_keypair_plaintext
                     entity_obj.server_state = None
-                    entity_obj.save()
+                    entity_obj.save(
+                        only=[
+                            "client_publish_pub_key",
+                            "publish_keypair",
+                            "server_state",
+                        ]
+                    )
                     logger.info("Successfully reauthenticated entity.")
                     return response(
                         success=True, message="Successfully reauthenticated entity."
