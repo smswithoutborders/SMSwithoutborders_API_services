@@ -106,30 +106,26 @@ def export_public_keys_to_file(file_path: str, yes: bool, skip_if_exists: bool) 
 
         active_keypairs = StaticKeypairs.get_keypairs(status="active")
 
-        grouped_keys = {}
-        for keypair in active_keypairs:
-            version = keypair.version
-            if version not in grouped_keys:
-                grouped_keys[version] = []
-
-            grouped_keys[version].append(
-                {
-                    "kid": keypair.kid,
-                    "keypair": base64.b64encode(
-                        x25519()
-                        .deserialize(
-                            decrypt_aes(
-                                ENCRYPTION_KEY, keypair.keypair_bytes, is_bytes=True
-                            )
+        public_keys = [
+            {
+                "kid": keypair.kid,
+                "keypair": base64.b64encode(
+                    x25519()
+                    .deserialize(
+                        decrypt_aes(
+                            ENCRYPTION_KEY, keypair.keypair_bytes, is_bytes=True
                         )
-                        .get_public_key()
-                    ).decode("utf-8"),
-                    "status": keypair.status,
-                }
-            )
+                    )
+                    .get_public_key()
+                ).decode("utf-8"),
+                "status": keypair.status,
+                "version": keypair.version,
+            }
+            for keypair in active_keypairs
+        ]
 
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(grouped_keys, f, indent=2)
+            json.dump(public_keys, f, indent=2)
 
         logger.info("Public keys exported successfully to %s.", file_path)
 
