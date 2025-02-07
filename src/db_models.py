@@ -169,16 +169,17 @@ class StaticKeypairs(Model):
     date_last_used = DateTimeField(null=True)
     date_created = DateTimeField(default=datetime.datetime.now)
     usage_count = IntegerField(default=0)
+    version = CharField()
 
     class Meta:
         """Meta class to define database connection."""
 
         database = database
         table_name = "static_keypairs"
-        indexes = ((("kid", "status"), True),)
+        indexes = ((("kid", "status", "version"), True),)
 
     @classmethod
-    def create_keypair(cls, kid, keypair_bytes, status):
+    def create_keypair(cls, kid, keypair_bytes, status, version):
         """Creates and stores a new keypair safely."""
         if status not in KeypairStatus._value2member_map_:
             raise ValueError(
@@ -186,9 +187,7 @@ class StaticKeypairs(Model):
             )
         with database.atomic():
             return cls.create(
-                kid=kid,
-                keypair_bytes=keypair_bytes,
-                status=status,
+                kid=kid, keypair_bytes=keypair_bytes, status=status, version=version
             )
 
     @classmethod
@@ -201,12 +200,14 @@ class StaticKeypairs(Model):
         return list(query)
 
     @classmethod
-    def get_keypair(cls, kid):
-        """Retrieves a keypair by its ID."""
-        keypair = cls.get_or_none(cls.kid == kid)
+    def get_keypair(cls, kid, version):
+        """Retrieves a keypair by its ID and version."""
+        keypair = cls.get_or_none(cls.kid == kid, cls.version == version)
         if keypair:
-            keypair.update_last_used()
-            keypair.update_usage_count()
+            with database.atomic():
+                keypair.usage_count += 1
+                keypair.date_last_used = datetime.datetime.now()
+                keypair.save(only=["date_last_used", "usage_count"])
         return keypair
 
     @classmethod
@@ -232,18 +233,6 @@ class StaticKeypairs(Model):
             if keypair:
                 return keypair.delete_instance()
             return None
-
-    def update_last_used(self):
-        """Updates the last used timestamp for this keypair instance."""
-        with database.atomic():
-            self.date_last_used = datetime.datetime.now()
-            self.save(only=["date_last_used"])
-
-    def update_usage_count(self):
-        """Increments the usage count for this keypair instance."""
-        with database.atomic():
-            self.usage_count += 1
-            self.save(only=["usage_count"])
 
 
 if get_configs("MODE", default_value="development") in ("production", "development"):

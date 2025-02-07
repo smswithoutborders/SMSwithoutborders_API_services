@@ -285,6 +285,8 @@ message CreateBridgeEntityRequest {
   string ownership_proof_response = 4;
   // The server's public key identifier.
   string server_pub_key_identifier = 5;
+  // The server's public key version.
+  string server_pub_key_version = 6;
 }
 
 // Response message for creating a bridge entity.

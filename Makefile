@@ -53,7 +53,7 @@ create-dummy-user:
 
 generate-static-keys:
 	$(call log_message,[INFO] Generating x25519 static keys ...)
-	@$(PYTHON) -m scripts.x25519_keygen generate -n 255 && \
+	@$(PYTHON) -m scripts.x25519_keygen generate -n 255 -v v1 && \
 	$(PYTHON) -m scripts.x25519_keygen export --skip-if-exists
 	$(call log_message,[INFO] x25519 static keys generated successfully.)
 

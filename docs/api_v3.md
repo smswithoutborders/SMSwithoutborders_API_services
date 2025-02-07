@@ -24,21 +24,35 @@ GET /v3/keys/static-x25519
 
 **Response Body:**
 
+> The status can be `active`, `inactive`, or `archived`.
+
 ```json
-[
-  {
-    "kid": 0,
-    "public_key": "..."
-  },
-  {
-    "kid": 1,
-    "public_key": "..."
-  },
-  {
-    "kid": 2,
-    "public_key": "..."
-  }
-]
+{
+  "v1": [
+    {
+      "keypair": "pqkZPzH6jqZN5n45RuY91+k5ESxijfYOR+caOALJe1I=",
+      "kid": 0,
+      "status": "active"
+    },
+    {
+      "keypair": "gh7eH6GT5l+wXnz0z/nqMu/BhSlyz7FxqFoneaPbS3E=",
+      "kid": 1,
+      "status": "active"
+    }
+  ],
+  "v2": [
+    {
+      "keypair": "NJuBTMkQzLors6ZCok+ZBDWOXSB1NDhjKGKGchd1q1k=",
+      "kid": 0,
+      "status": "active"
+    },
+    {
+      "keypair": "TdKzENsuN6LHlf6XalCEeE32lstF3KoVy1xi443WDAg=",
+      "kid": 1,
+      "status": "active"
+    }
+  ]
+}
 ```
 
 **Status Code: 500 Internal Server Error**

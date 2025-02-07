@@ -10,7 +10,6 @@ import argparse
 import uuid
 import json
 import random
-from typing import Optional
 
 from smswithoutborders_libsig.keypairs import x25519
 from base_logger import get_logger
@@ -25,12 +24,11 @@ STATIC_KEYSTORE_PATH = get_configs("STATIC_X25519_KEYSTORE_PATH", strict=True)
 DEFAULT_EXPORT_PATH = os.path.join(STATIC_KEYSTORE_PATH, "exported_public_keys.json")
 
 
-def generate_keypair(kid: int) -> None:
+def generate_keypair(kid: int, keystore_path: str, version: str) -> None:
     """Generates a keypair, encrypts it, and stores it in the database."""
-    keystore_path: Optional[str] = None
     try:
-        keystore_path = os.path.join(STATIC_KEYSTORE_PATH, f"{uuid.uuid4()}.db")
-        keypair_obj = x25519(keystore_path)
+        keystore_db_path = os.path.join(keystore_path, f"{uuid.uuid4()}.db")
+        keypair_obj = x25519(keystore_db_path)
         keypair_obj.init()
 
         keypair_ciphertext = encrypt_aes(
@@ -38,49 +36,55 @@ def generate_keypair(kid: int) -> None:
         )
 
         StaticKeypairs.create_keypair(
-            kid=kid, keypair_bytes=keypair_ciphertext, status="active"
+            kid=kid, keypair_bytes=keypair_ciphertext, status="active", version=version
         )
         logger.debug("Successfully generated and stored keypair %d.", kid)
 
     except Exception as e:
         logger.exception("Failed to generate keypair %d: %s", kid, e)
 
-        if keystore_path and os.path.exists(keystore_path):
+        if keystore_db_path and os.path.exists(keystore_db_path):
             try:
-                os.remove(keystore_path)
-                logger.info("Rolled back and deleted keystore file: %s", keystore_path)
+                os.remove(keystore_db_path)
+                logger.info(
+                    "Rolled back and deleted keystore file: %s", keystore_db_path
+                )
             except Exception as rollback_error:
                 logger.error(
                     "Failed to delete keystore file %s: %s",
-                    keystore_path,
+                    keystore_db_path,
                     rollback_error,
                 )
 
 
-def generate_keypairs(count: int) -> None:
+def generate_keypairs(count: int, version: str) -> None:
     """Generates and stores multiple keypairs."""
-    if os.path.exists(STATIC_KEYSTORE_PATH) and os.listdir(STATIC_KEYSTORE_PATH):
+    if not version.startswith("v"):
+        logger.error("version must start with 'v'. e.g v1.")
+        return
+
+    keystore_path = os.path.join(STATIC_KEYSTORE_PATH, version)
+    if os.path.exists(keystore_path) and os.listdir(keystore_path):
         logger.info(
             "Keypair generation skipped: '%s' is not empty. To overwrite the content, "
             "delete the directory or use a different one.",
-            STATIC_KEYSTORE_PATH,
+            keystore_path,
         )
         return
 
-    os.makedirs(STATIC_KEYSTORE_PATH, exist_ok=True)
+    os.makedirs(keystore_path, exist_ok=True)
 
     for i in range(count):
-        generate_keypair(i)
+        generate_keypair(i, keystore_path, version)
 
     logger.info("Successfully generated %d keypairs.", count)
 
 
 def export_public_keys_to_file(file_path: str, yes: bool, skip_if_exists: bool) -> None:
-    """Exports all public keys to a specified JSON file."""
+    """Exports all public keys grouped by version to a specified JSON file."""
     file_path = file_path or DEFAULT_EXPORT_PATH
     try:
         dir_path = os.path.dirname(file_path)
-
         if dir_path:
             os.makedirs(dir_path, exist_ok=True)
 
@@ -102,24 +106,30 @@ def export_public_keys_to_file(file_path: str, yes: bool, skip_if_exists: bool) 
 
         active_keypairs = StaticKeypairs.get_keypairs(status="active")
 
-        public_keys = [
-            {
-                "kid": keypair.kid,
-                "public_key": base64.b64encode(
-                    x25519()
-                    .deserialize(
-                        decrypt_aes(
-                            ENCRYPTION_KEY, keypair.keypair_bytes, is_bytes=True
+        grouped_keys = {}
+        for keypair in active_keypairs:
+            version = keypair.version
+            if version not in grouped_keys:
+                grouped_keys[version] = []
+
+            grouped_keys[version].append(
+                {
+                    "kid": keypair.kid,
+                    "keypair": base64.b64encode(
+                        x25519()
+                        .deserialize(
+                            decrypt_aes(
+                                ENCRYPTION_KEY, keypair.keypair_bytes, is_bytes=True
+                            )
                         )
-                    )
-                    .get_public_key()
-                ).decode("utf-8"),
-            }
-            for keypair in active_keypairs
-        ]
+                        .get_public_key()
+                    ).decode("utf-8"),
+                    "status": keypair.status,
+                }
+            )
 
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(public_keys, f, indent=2)
+            json.dump(grouped_keys, f, indent=2)
 
         logger.info("Public keys exported successfully to %s.", file_path)
 
@@ -166,6 +176,9 @@ def main() -> None:
     generate_parser.add_argument(
         "-n", "--number", type=int, default=255, help="Number of keypairs to generate"
     )
+    generate_parser.add_argument(
+        "-v", "--version", type=str, required=True, help="Keypair version"
+    )
 
     export_parser = subparser.add_parser("export", help="Export public keys")
     export_parser.add_argument(
@@ -183,7 +196,7 @@ def main() -> None:
     args = parser.parse_args()
 
     commands = {
-        "generate": lambda: generate_keypairs(args.number),
+        "generate": lambda: generate_keypairs(args.number, args.version),
         "export": lambda: export_public_keys_to_file(
             args.file, args.yes, args.skip_if_exists
         ),

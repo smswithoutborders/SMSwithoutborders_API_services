@@ -938,13 +938,18 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                 context,
                 request,
                 response,
-                ["country_code", "client_publish_pub_key", "server_pub_key_identifier"],
+                [
+                    "country_code",
+                    "client_publish_pub_key",
+                    "server_pub_key_identifier",
+                    "server_pub_key_version",
+                ],
             )
             if invalid_fields_response:
                 return invalid_fields_response
 
             server_publish_keypair = StaticKeypairs.get_keypair(
-                request.server_pub_key_identifier
+                request.server_pub_key_identifier, request.server_pub_key_version
             )
 
             if not server_publish_keypair or server_publish_keypair.status != "active":
@@ -953,7 +958,8 @@ class EntityInternalService(vault_pb2_grpc.EntityInternalServicer):
                     context,
                     response,
                     "The server public key identifier "
-                    f"'{request.server_pub_key_identifier}' is {status}.",
+                    f"'{request.server_pub_key_identifier}' for version "
+                    f"{request.server_pub_key_version} is {status}.",
                     grpc.StatusCode.NOT_FOUND,
                 )
 
